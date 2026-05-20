@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>منصة دفعة أسنان دمشق 82</title>
     
-    <!-- وسوم تهيئة التطبيق والدعم على الهواتف -->
     <meta name="theme-color" content="#1a56db">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -35,7 +34,7 @@
         .form-control { width: 100%; padding: 11px; margin-bottom: 14px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; text-align: right; }
         .form-control:focus { outline: none; border-color: #1a56db; box-shadow: 0 0 0 3px rgba(26, 86, 219, 0.1); }
 
-        /* --- 2. شاشة الدخول الثلاثية --- */
+        /* --- 2. شاشة الدخول الثلاثية المحمية --- */
         .login-wrapper { background: white; padding: 40px 30px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); width: 100%; max-width: 400px; text-align: center; z-index: 10; }
         .login-wrapper h2 { color: #1a56db; font-size: 24px; margin-bottom: 6px; }
         .login-wrapper .desc { color: #64748b; font-size: 14px; margin-bottom: 25px; }
@@ -71,16 +70,16 @@
         }
         
         .header-title { flex: 1; text-align: center; font-size: 17px; letter-spacing: 0.3px; }
-        .header-btn { background: none; border: none; color: white; font-size: 13px; cursor: pointer; padding: 8px 12px; border-radius: 20px; transition: all 0.2s ease; text-decoration: none; display: flex; align-items: center; justify-content: center; }
+        .header-btn { background: none; border: none; color: white; font-size: 13px; cursor: pointer; padding: 8px 12px; border-radius: 20px; transition: all 0.2s ease; text-decoration: none; display: flex; align-items: center; justify-content: center; position: relative; }
         .header-btn:hover { background-color: rgba(255, 255, 255, 0.15); }
         .admin-trigger { font-size: 18px; display: none; padding: 6px 10px; }
 
-        /* لوحة اختيار الخلفية المبسطة */
+        /* لوحة اختيار الخلفية */
         .theme-selector { display: none; background: #1e293b; padding: 10px; justify-content: center; gap: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); z-index: 9; }
         .theme-dot { width: 24px; height: 24px; border-radius: 50%; cursor: pointer; border: 2px solid white; transition: transform 0.2s; }
         .theme-dot:hover { transform: scale(1.15); }
 
-        /* شريط المناسبات المتوهج والملفت */
+        /* شريط المناسبات الإعلاني */
         .ticker-wrap { background-color: #f59e0b; color: #1e293b; font-size: 12px; font-weight: bold; padding: 7px 10px; overflow: hidden; white-space: nowrap; border-bottom: 2px solid #d97706; box-shadow: inset 0 -5px 10px rgba(0,0,0,0.03); }
         .ticker-content { display: inline-block; animation: ticker 22s linear infinite; padding-right: 100%; }
         @keyframes ticker {
@@ -88,16 +87,16 @@
             100% { transform: translate3d(-100%, 0, 0); }
         }
 
-        /* تابات التنقل ونقطة الإشعار الحمراء */
+        /* تابات التنقل */
         .tab-bar { display: flex; background: #f8fafc; border-bottom: 1px solid #e2e8f0; }
         .tab-btn { flex: 1; padding: 12px; background: none; border: none; border-bottom: 3px solid transparent; font-size: 13px; font-weight: bold; color: #64748b; cursor: pointer; text-align: center; position: relative; }
         .tab-btn.active { color: #1a56db; border-color: #1a56db; background: white; }
         
         .notification-dot { display: none; position: absolute; top: 10px; right: 22px; width: 8px; height: 8px; background-color: #ef4444; border-radius: 50%; animation: pulse 1.5s infinite; }
-        @keyframes pulse { 0% { transform: scale(0.9); opacity: 0.7; } 50% { transform: scale(1.2); opacity: 1; } 100% { transform: scale(0.9); opacity: 0.7; } }
+        .admin-badge-dot { display: none; position: absolute; top: 2px; right: 2px; width: 9px; height: 9px; background-color: #ef4444; border-radius: 50%; }
 
         /* بطاقة شخصية اليوم */
-        .featured-card { background-color: rgba(248, 250, 252, 0.9); border-bottom: 2px solid #e2e8f0; padding: 15px; display: flex; align-items: flex-start; gap: 15px; transition: background-color 0.3s; }
+        .featured-card { background-color: rgba(248, 250, 252, 0.9); border-bottom: 2px solid #e2e8f0; padding: 15px; display: flex; align-items: flex-start; gap: 15px; }
         .avatar-group { display: flex; flex-direction: column; gap: 4px; }
         .avatar-img { width: 55px; height: 55px; border-radius: 50%; border: 2px solid #1a56db; object-fit: cover; background-color: #e2e8f0; }
         .card-content { flex: 1; }
@@ -105,11 +104,11 @@
         .card-content h4 { font-size: 15px; color: #1e293b; margin-bottom: 3px; }
         .card-content p { font-size: 13px; color: #475569; line-height: 1.4; }
 
-        /* جدار المحادثة وألبوم الصور مع دعم تغيير الخلفية */
-        .view-content { flex: 1; overflow-y: auto; padding: 20px; background-color: #f1f5f9; display: flex; flex-direction: column; gap: 12px; transition: background-color 0.3s; }
+        /* جدار المحادثة وألبوم الصور */
+        .view-content { flex: 1; overflow-y: auto; padding: 20px; background-color: #f1f5f9; display: flex; flex-direction: column; gap: 12px; }
         #photoView { display: none; }
 
-        /* تنسيقات الرسائل واستقرار تباين الألوان مع الخلفيات الجديدة */
+        /* تنسيقات الرسائل */
         .msg-wrapper { display: flex; width: 100%; align-items: center; gap: 8px; }
         .msg-wrapper.sent-wrapper { justify-content: flex-end; }
         .msg-wrapper.recv-wrapper { justify-content: flex-start; }
@@ -119,12 +118,11 @@
         .msg-user { font-size: 11px; font-weight: bold; color: #1a56db; margin-bottom: 3px; }
         .msg-time { font-size: 10px; color: #94a3b8; text-align: left; margin-top: 4px; }
         .delete-msg-btn { background: none; border: none; color: #ef4444; font-size: 14px; cursor: pointer; display: none; padding: 4px; opacity: 0.6; }
-        .delete-msg-btn:hover { opacity: 1; }
 
-        /* تنسيقات كروت ألبوم الصور المشترك */
+        /* ألبوم الصور */
         .photo-card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.04); border: 1px solid #e2e8f0; margin-bottom: 10px; position: relative; }
-        .photo-card img { width: 100%; max-height: 250px; object-fit: cover; background: #e2e8f0; }
-        .photo-desc { padding: 12px; font-size: 13px; color: #334155; line-height: 1.4; background: white; }
+        .photo-card img { width: 100%; max-height: 250px; object-fit: cover; }
+        .photo-desc { padding: 12px; font-size: 13px; color: #334155; line-height: 1.4; }
         .photo-meta { font-size: 11px; color: #64748b; margin-top: 5px; display: block; }
 
         .input-bar { background: white; padding: 12px; display: flex; align-items: center; gap: 8px; border-top: 1px solid #e2e8f0; z-index: 10; }
@@ -132,25 +130,30 @@
         .icon-btn { background: none; border: none; cursor: pointer; padding: 4px; font-size: 18px; color: #64748b; }
         .send-arrow { background-color: #1a56db; color: white; border: none; border-radius: 50%; width: 38px; height: 38px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
 
-        /* تباين الألوان لوضع القراءة الليلي / الداكن */
+        /* القوالب اللونية */
         body.theme-dark .view-content { background-color: #0f172a; }
         body.theme-dark .featured-card { background-color: #1e293b; border-bottom-color: #334155; }
         body.theme-dark .featured-card h4 { color: #f8fafc; }
         body.theme-dark .featured-card p { color: #cbd5e1; }
         body.theme-dark .msg-bubble.recv { background-color: #1e293b; color: #f8fafc; }
-        body.theme-dark .msg-bubble.recv .msg-user { color: #38bdf8; }
-
-        /* تغيير ألوان الخلفيات الأخرى المريحة للعين */
         body.theme-beige .view-content { background-color: #fcf8f2; }
         body.theme-green .view-content { background-color: #edf7ed; }
 
-        /* --- 4. شاشة لوحة تحكم الإدارة --- */
+        /* لوحة تحكم الإدارة */
         .admin-panel { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 100; flex-direction: column; overflow-y: auto; padding: 20px; }
         .panel-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; margin-bottom: 20px; }
         .panel-header h2 { font-size: 18px; color: #1a56db; }
         .close-panel { color: #dc2626; cursor: pointer; font-size: 14px; font-weight: bold; }
         .section-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 15px; margin-bottom: 20px; }
         .section-box h3 { font-size: 15px; color: #1e293b; margin-bottom: 12px; border-right: 3px solid #1a56db; padding-right: 8px; }
+        
+        .request-item { background: white; padding: 12px; border-radius: 8px; border: 1px solid #cbd5e1; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+        .req-info h5 { font-size: 14px; color: #1e293b; }
+        .req-info p { font-size: 12px; color: #64748b; margin-top: 2px; }
+        .req-actions { display: flex; gap: 8px; }
+        .btn-action { border: none; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer; }
+        .btn-approve { background-color: #10b981; color: white; }
+        .btn-reject { background-color: #ef4444; color: white; }
     </style>
 </head>
 <body>
@@ -174,11 +177,12 @@
 
         <div id="doctorForm" class="sub-form">
             <h3>دخول الأطباء</h3>
-            <label>الاسم الحالي</label>
-            <input type="text" id="docName" class="form-control" placeholder="الاسم الثنائي أو الثلاثي">
+            <label>الاسم الكامل</label>
+            <input type="text" id="docName" class="form-control" placeholder="اكتب اسمك كما سجلت">
             <label>كلمة السر</label>
             <input type="password" id="docPass" class="form-control" placeholder="كلمة السر الخاصة بك">
-            <button class="btn-blue" style="background-color: #057a55;" onclick="enterSalon('doctor')">دخول الصالون</button>
+            <div id="doctorError" class="error-text">بيانات الدخول غير صحيحة أو الحساب بانتظار التفعيل</div>
+            <button class="btn-blue" style="background-color: #057a55;" onclick="verifyDoctorLogin()">دخول الصالون</button>
         </div>
 
         <div id="registerForm" class="sub-form">
@@ -187,7 +191,9 @@
             <input type="text" id="regName" class="form-control" placeholder="اكتب اسمك المعروف للدفعة">
             <label>الرقم (واتساب أو موبايل)</label>
             <input type="tel" id="regPhone" class="form-control" placeholder="00963..." style="text-align: left; direction: ltr;">
-            <button class="btn-blue" style="background-color: #057a55;" onclick="requestJoin()">إرسال الطلب</button>
+            <label>حدد كلمة السر الخاصة بك</label>
+            <input type="password" id="regPass" class="form-control" placeholder="اختر كلمة سر لتسجيل الدخول بها لاحقاً">
+            <button class="btn-blue" style="background-color: #057a55;" onclick="requestJoin()">إرسال الطلب للاعتماد</button>
         </div>
     </div>
 
@@ -198,59 +204,41 @@
             <a class="header-btn" onclick="logout()">خروج</a>
             <div class="header-title">صالون دفعة أسنان 82</div>
             <button class="header-btn" onclick="toggleThemeBar()" title="تغيير خلفية الصالون">🎨</button>
-            <button class="header-btn admin-trigger" id="adminLink" onclick="openAdminPanel()">⚙️</button>
-        </div>
-
-        <!-- شريط اختيار الخلفية السريع -->
-        <div class="theme-selector" id="themeSelector">
-            <div class="theme-dot" style="background-color: #f1f5f9;" onclick="changeTheme('default')" title="رمادي افتراضي"></div>
-            <div class="theme-dot" style="background-color: #fcf8f2;" onclick="changeTheme('beige')" title="بيج كلاسيكي"></div>
-            <div class="theme-dot" style="background-color: #edf7ed;" onclick="changeTheme('green')" title="أخضر مهدئ"></div>
-            <div class="theme-dot" style="background-color: #0f172a;" onclick="changeTheme('dark')" title="وضع ليلي لحماية العين"></div>
-        </div>
-
-        <!-- شريط الإعلانات المتوهج للمناسبات والمواعيد -->
-        <div class="ticker-wrap" id="tickerWrap">
-            <div class="ticker-content" id="tickerText">أهلاً بكم في صالون العمر.. يرجى متابعة لوحة الإعلانات بانتظام لمعرفة مواعيد اللقاءات الاجتماعية الدورية للزمالة.</div>
-        </div>
-
-        <!-- تابات التنقل مع مؤشر الإشعارات للألبوم -->
-        <div class="tab-bar">
-            <button class="tab-btn active" id="tabChat" onclick="switchView('chat')">💬 صالون الدردشة</button>
-            <button class="tab-btn" id="tabPhotos" onclick="switchView('photos')">
-                📷 ألبوم ذكريات زمان
-                <span class="notification-dot" id="photoDot"></span>
+            <button class="header-btn admin-trigger" id="adminLink" onclick="openAdminPanel()">
+                ⚙️ <span class="admin-badge-dot" id="adminBadge"></span>
             </button>
         </div>
 
-        <!-- فقرة شخصية اليوم (منظفة ومصفّرة بالكامل) -->
+        <div class="theme-selector" id="themeSelector">
+            <div class="theme-dot" style="background-color: #f1f5f9;" onclick="changeTheme('default')"></div>
+            <div class="theme-dot" style="background-color: #fcf8f2;" onclick="changeTheme('beige')"></div>
+            <div class="theme-dot" style="background-color: #edf7ed;" onclick="changeTheme('green')"></div>
+            <div class="theme-dot" style="background-color: #0f172a;" onclick="changeTheme('dark')"></div>
+        </div>
+
+        <div class="ticker-wrap" id="tickerWrap">
+            <div class="ticker-content" id="tickerText">أهلاً بكم في صالون العمر.. يرجى متابعة لوحة الإعلانات بانتظام لمعرفة مواعيد اللقاءات الدورية.</div>
+        </div>
+
+        <div class="tab-bar">
+            <button class="tab-btn active" id="tabChat" onclick="switchView('chat')">💬 صالون الدردشة</button>
+            <button class="tab-btn" id="tabPhotos" onclick="switchView('photos')">📷 ألبوم ذكريات زمان <span class="notification-dot" id="photoDot"></span></button>
+        </div>
+
         <div class="featured-card" id="featuredCard">
-            <div class="avatar-group"><img id="featuredImg" class="avatar-img" src="https://via.placeholder.com/150" alt="طبيب اليوم"></div>
+            <div class="avatar-group"><img id="featuredImg" class="avatar-img" src="https://via.placeholder.com/150"></div>
             <div class="card-content">
                 <span class="card-tag">شخصية اليوم 🌟</span>
                 <h4 id="featuredName">الدكتور الزميل</h4>
-                <p id="featuredDesc">اضغط على رمز الترس (⚙️) في زاوية الهيدر لتحديث بيانات الزميل المحتفى به اليوم ونشر مسيرته العطرة.</p>
+                <p id="featuredDesc">اضغط على رمز الترس (⚙️) لتعديل بيانات شخصية اليوم العطرة.</p>
             </div>
         </div>
 
-        <!-- عرض جدار المحادثة (تم تنظيفه وحذف الرسالة التجريبية بالكامل) -->
-        <div class="view-content" id="chatWall">
-            <!-- جدار نظيف فارغ تماماً بانتظام رسائل الأطباء من الفايربيس -->
-        </div>
-
-        <!-- عرض ألبوم الصور المشترك -->
-        <div class="view-content" id="photoView">
-            <div class="photo-card" id="photo_init">
-                <img src="https://via.placeholder.com/500x300/1a56db/ffffff?text=دمشق+1981" alt="صورة قديمة">
-                <div class="photo-desc">
-                    مدرج كلية طب الأسنان - جامعة دمشق أثناء فترة العملي.
-                    <span class="photo-meta">بواسطة: الإدارة • ذكريات زمان</span>
-                </div>
-            </div>
-        </div>
+        <div class="view-content" id="chatWall"></div>
+        <div class="view-content" id="photoView"></div>
 
         <div class="input-bar">
-            <button class="icon-btn admin-photo-trigger" style="display:none;" onclick="triggerPhotoUploadBox()" title="إضافة صورة للألبوم">📷</button>
+            <button class="icon-btn admin-photo-trigger" style="display:none;" onclick="triggerPhotoUploadBox()">📷</button>
             <input type="text" id="chatInput" class="bar-input" placeholder="اكتب رسالتك هنا...">
             <button class="send-arrow" onclick="pushMessage()">◀</button>
         </div>
@@ -262,70 +250,279 @@
                 <span class="close-panel" onclick="closeAdminPanel()">إغلاق العودة للصالون ✖</span>
             </div>
 
-            <!-- التحكم بالإعلانات والمواعيد -->
+            <div class="section-box" style="border: 2px solid #1a56db; background: #f0fdf4;">
+                <h3>إدارة طلبات الانضمام والموافقة (الأطباء الجدد)</h3>
+                <div id="requestsListContainer">
+                    <p style="font-size: 13px; color: #64748b; text-align: center; padding: 10px;">لا توجد طلبات انضمام معلقة حالياً.</p>
+                </div>
+            </div>
+
             <div class="section-box" style="border: 1px solid #f59e0b; background: #fffbeb;">
                 <h3>أولاً: تحديث شريط المناسبات والإعلانات</h3>
-                <label style="font-size: 13px; font-weight: bold; display: block; margin-bottom: 5px;">نص الإعلان (سيظهر كشريط متحرك علوي للأعضاء)</label>
-                <textarea id="editTicker" class="form-control" rows="3" placeholder="اكتب نص الموعد أو الإعلان هنا..." style="resize: none; font-family: inherit;"></textarea>
+                <textarea id="editTicker" class="form-control" rows="3" placeholder="اكتب نص الموعد أو الإعلان هنا..."></textarea>
                 <button class="btn-blue" style="background-color: #f59e0b; color: #1e293b;" onclick="updateTicker()">تحديث ونشر الشريط الإعلاني فوراً 📢</button>
             </div>
 
-            <!-- تحرير بيانات شخصية اليوم -->
             <div class="section-box">
                 <h3>ثانياً: تحديث بيانات شخصية اليوم</h3>
-                <label style="font-size: 13px; font-weight: bold; display: block; margin-bottom: 5px;">اسم الطبيب الزميل</label>
-                <input type="text" id="editDocName" class="form-control" placeholder="مثال: د. زكريا عطوني">
-                <label style="font-size: 13px; font-weight: bold; display: block; margin-bottom: 5px;">رابط الصورة الشخصية</label>
+                <input type="text" id="editDocName" class="form-control" placeholder="اسم الطبيب الزميل">
                 <input type="text" id="editDocImg" class="form-control" placeholder="ضع رابط الصورة هنا">
-                <label style="font-size: 13px; font-weight: bold; display: block; margin-bottom: 5px;">نصوص المسيرة والذكريات</label>
-                <textarea id="editDocDesc" class="form-control" rows="3" placeholder="اكتب هنا نبذة وذكريات الكلية..." style="resize: none; font-family: inherit;"></textarea>
+                <textarea id="editDocDesc" class="form-control" rows="3" placeholder="اكتب هنا نبذة وذكريات الكلية..."></textarea>
                 <button class="btn-blue" onclick="updateFeaturedDoctor()">حفظ ونشر شخصية اليوم</button>
-                <button class="btn-blue" style="background-color: #ef4444;" onclick="clearFeaturedDoctor()">تصفير بطاقة شخصية اليوم</button>
             </div>
 
-            <!-- إضافة صورة جدار الذكريات -->
             <div id="adminPhotoBox" class="section-box" style="border: 2px dashed #1a56db;">
                 <h3>ثالثاً: رفع صورة جديدة إلى "ألبوم ذكريات زمان"</h3>
-                <label style="font-size: 13px; font-weight: bold; display: block; margin-bottom: 5px;">رابط الصورة على الإنترنت</label>
-                <input type="text" id="newPhotoUrl" class="form-control" placeholder="https://example.com/photo.jpg">
-                <label style="font-size: 13px; font-weight: bold; display: block; margin-bottom: 5px;">وصف وتفاصيل الصورة (المكان والذكرى)</label>
-                <input type="text" id="newPhotoDesc" class="form-control" placeholder="مثال: رحلة كسب الجماعية للدفعة صيف 1981">
-                <button class="btn-blue" style="background-color: #10b981;" onclick="addNewPhotoToAlbum()">نشر الصورة في الألبوم وتفعيل الإشعار</button>
+                <input type="text" id="newPhotoUrl" class="form-control" placeholder="رابط الصورة">
+                <input type="text" id="newPhotoDesc" class="form-control" placeholder="تفاصيل الصورة...">
+                <button class="btn-blue" style="background-color: #10b981;" onclick="addNewPhotoToAlbum()">نشر الصورة في الألبوم</button>
             </div>
         </div>
     </div>
 
-    <!-- ================= الجزء البرمجي ================= -->
+    <!-- ================= الجزء البرمجي المصلح ================= -->
     <script>
+        // ضع بيانات Firebase الخاصة بمشروعك هنا دكتور
         const firebaseConfig = { apiKey: "API_KEY", authDomain: "PROJECT.firebaseapp.com", databaseURL: "DATABASE_URL", projectId: "PROJECT", storageBucket: "PROJECT.appspot.com", messagingSenderId: "0000", appId: "0000" };
+
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
 
         let currentUser = "طبيب زميل";
         let isSystemAdmin = false;
 
+        // تم إصلاح دالة التحميل البرمجية لمنع أي انهيار مفاجئ للأزرار
         window.onload = function() {
-            if(localStorage.getItem('user_theme')) {
-                changeTheme(localStorage.getItem('user_theme'));
-            }
+            if(localStorage.getItem('user_theme')) { changeTheme(localStorage.getItem('user_theme')); }
 
-            if(localStorage.getItem('ticker_saved')) {
-                document.getElementById('tickerText').innerText = localStorage.getItem('ticker_saved');
-            }
-            
-            if(localStorage.getItem('photo_dot_active') === 'true') {
-                document.getElementById('photoDot').style.display = 'block';
-            }
+            database.ref('ticker_saved').on('value', snapshot => {
+                if(snapshot.val()) document.getElementById('tickerText').innerText = snapshot.val();
+            });
 
-            if(localStorage.getItem('activeUser')) {
-                currentUser = localStorage.getItem('activeUser');
-                if(localStorage.getItem('activeRole') === 'admin') {
-                    isSystemAdmin = true;
-                    document.getElementById('adminLink').style.display = 'block';
-                    document.querySelector('.admin-photo-trigger').style.display = 'block';
-                    showDeleteButtons(true);
+            database.ref('featured_doctor').on('value', snapshot => {
+                const data = snapshot.val();
+                if(data) {
+                    document.getElementById('featuredName').innerText = data.name || "الدكتور الزميل";
+                    document.getElementById('featuredDesc').innerText = data.desc || "";
+                    document.getElementById('featuredImg').src = data.img || "https://via.placeholder.com/150";
                 }
-                bypassLogin();
-            }
+            });
+
+            database.ref('chat_messages').limitToLast(40).on('child_added', snapshot => {
+                const msg = snapshot.val();
+                appendMessageToWall(snapshot.key, msg.user, msg.text, msg.time, msg.isSentByAdmin);
+            });
+
+            database.ref('photo_album').on('child_added', snapshot => {
+                const photo = snapshot.val();
+                appendPhotoToAlbum(snapshot.key, photo.url, photo.desc);
+            });
+
+            // هذا الجزء تم تأمينه تماماً لكي لا يُعطل المتصفح
+            try {
+                if(localStorage.getItem('activeUser')) {
+                    currentUser = localStorage.getItem('activeUser');
+                    if(localStorage.getItem('activeRole') === 'admin') { activateAdminPrivileges(); }
+                    bypassLogin();
+                }
+            } catch(e) { console.log("No active session cached."); }
         };
+
+        // دالة تفعيل صلاحيات المشرف الشاملة
+        function activateAdminPrivileges() {
+            isSystemAdmin = true;
+            document.getElementById('adminLink').style.display = 'block';
+            document.querySelector('.admin-photo-trigger').style.display = 'block';
+            
+            database.ref('join_requests').on('value', snapshot => {
+                const requests = snapshot.val();
+                const container = document.getElementById('requestsListContainer');
+                const badge = document.getElementById('adminBadge');
+                
+                if(!requests) {
+                    container.innerHTML = `<p style="font-size: 13px; color: #64748b; text-align: center; padding: 10px;">لا توجد طلبات انضمام معلقة حالياً.</p>`;
+                    badge.style.display = 'none';
+                    return;
+                }
+                
+                container.innerHTML = "";
+                badge.style.display = 'block';
+                
+                Object.keys(requests).forEach(key => {
+                    const req = requests[key];
+                    const item = document.createElement('div');
+                    item.className = 'request-item';
+                    item.innerHTML = `
+                        <div class="req-info">
+                            <h5>${req.name}</h5>
+                            <p>الموبايل: ${req.phone}</p>
+                        </div>
+                        <div class="req-actions">
+                            <button class="btn-action btn-approve" onclick="approveDoctor('${key}', '${req.name}', '${req.pass}', '${req.phone}')">تفعيل الحساب</button>
+                            <button class="btn-action btn-reject" onclick="rejectRequest('${key}')">حذف</button>
+                        </div>
+                    `;
+                    container.appendChild(item);
+                });
+            });
+        }
+
+        function verifyAdmin() {
+            const adminInputPass = document.getElementById('adminPass').value.trim();
+            if (adminInputPass === 'salem1959') {
+                currentUser = "الإدارة";
+                localStorage.setItem('activeUser', currentUser); 
+                localStorage.setItem('activeRole', 'admin');
+                document.getElementById('adminError').style.display = 'none';
+                activateAdminPrivileges();
+                bypassLogin();
+            } else {
+                document.getElementById('adminError').style.display = 'block';
+            }
+        }
+
+        function verifyDoctorLogin() {
+            const name = document.getElementById('docName').value.trim();
+            const pass = document.getElementById('docPass').value.trim();
+            const errorDiv = document.getElementById('doctorError');
+            
+            if(!name || !pass) { errorDiv.style.display = 'block'; return; }
+            
+            database.ref('verified_doctors/' + btoa(encodeURIComponent(name))).once('value', snapshot => {
+                const userData = snapshot.val();
+                if(userData && userData.password === pass) {
+                    currentUser = name;
+                    localStorage.setItem('activeUser', currentUser); localStorage.setItem('activeRole', 'doctor');
+                    errorDiv.style.display = 'none';
+                    bypassLogin();
+                } else {
+                    errorDiv.style.display = 'block';
+                }
+            });
+        }
+
+        function requestJoin() {
+            const name = document.getElementById('regName').value.trim();
+            const phone = document.getElementById('regPhone').value.trim();
+            const pass = document.getElementById('regPass').value.trim();
+            
+            if(!name || !phone || !pass) { alert('يرجى ملء الحقول بالكامل دكتور.'); return; }
+            
+            database.ref('join_requests').push({ name: name, phone: phone, pass: pass })
+            .then(() => {
+                alert('تم إرسال طلب انضمامك بنجاح. الإدارة ستراجع وتفعل حسابك قريباً.');
+                document.getElementById('regName').value = ""; document.getElementById('regPhone').value = ""; document.getElementById('regPass').value = "";
+                toggleForm('none');
+            });
+        }
+
+        function approveDoctor(key, name, pass, phone) {
+            database.ref('verified_doctors/' + btoa(encodeURIComponent(name))).set({
+                name: name,
+                password: pass,
+                phone: phone
+            }).then(() => {
+                database.ref('join_requests/' + key).remove();
+                alert(`تم اعتماد وتفعيل حساب الدكتور: ${name} بنجاح!`);
+            });
+        }
+
+        function rejectRequest(key) {
+            if(confirm("هل أنت متأكد من إلغاء وحذف هذا الطلب؟")) { database.ref('join_requests/' + key).remove(); }
+        }
+
+        function appendMessageToWall(id, user, text, time, isAdminMessage) {
+            const wall = document.getElementById('chatWall');
+            const isMe = (user === currentUser);
+            const wrapper = document.createElement('div');
+            wrapper.className = `msg-wrapper ${isMe ? 'sent-wrapper' : 'recv-wrapper'}`;
+            wrapper.id = "wrap_" + id;
+            
+            wrapper.innerHTML = `
+                <div class="msg-bubble ${isMe ? 'sent' : 'recv'}" style="${isAdminMessage ? 'border-right: 3px solid #f59e0b;' : ''}">
+                    <span class="msg-user">${user}</span>
+                    <div>${text}</div>
+                    <span class="msg-time">${time}</span>
+                </div>
+                ${isSystemAdmin ? `<button class="delete-msg-btn" style="display:block" onclick="deleteMessage('${id}')">🗑️</button>` : ''}
+            `;
+            wall.appendChild(wrapper);
+            wall.scrollTop = wall.scrollHeight;
+        }
+
+        function pushMessage() {
+            const input = document.getElementById('chatInput');
+            if (input.value.trim() !== "") {
+                const now = new Date();
+                const timeStr = now.toLocaleTimeString('ar-SY', { hour: '2-digit', minute: '2-digit' });
+                
+                database.ref('chat_messages').push({
+                    user: currentUser,
+                    text: input.value,
+                    time: timeStr,
+                    isSentByAdmin: isSystemAdmin
+                });
+                input.value = "";
+            }
+        }
+
+        function deleteMessage(id) {
+            if(confirm("حذف هذه الرسالة نهائياً؟")) {
+                database.ref('chat_messages/' + id).remove();
+                if(document.getElementById("wrap_" + id)) document.getElementById("wrap_" + id).remove();
+            }
+        }
+
+        function appendPhotoToAlbum(id, url, desc) {
+            const view = document.getElementById('photoView');
+            const card = document.createElement('div');
+            card.className = 'photo-card';
+            card.id = "photo_" + id;
+            card.innerHTML = `
+                <img src="${url}">
+                <div class="photo-desc">${desc}<span class="photo-meta">بواسطة: الإدارة • ذكريات زمان</span></div>
+                ${isSystemAdmin ? `<button class="delete-msg-btn" style="display:block; position:absolute; top:10px; left:10px; background:white; padding:5px; border-radius:50%;" onclick="deletePhoto('${id}')">🗑️</button>` : ''}
+            `;
+            view.appendChild(card);
+        }
+
+        function addNewPhotoToAlbum() {
+            const url = document.getElementById('newPhotoUrl').value;
+            const desc = document.getElementById('newPhotoDesc').value;
+            if(url && desc) {
+                database.ref('photo_album').push({ url: url, desc: desc })
+                .then(() => {
+                    document.getElementById('newPhotoUrl').value = ''; document.getElementById('newPhotoDesc').value = '';
+                    alert('تم نشر الصورة بنجاح!');
+                    closeAdminPanel();
+                    switchView('photos');
+                });
+            }
+        }
+
+        function deletePhoto(id) {
+            if(confirm("حذف الصورة؟")) {
+                database.ref('photo_album/' + id).remove();
+                if(document.getElementById("photo_" + id)) document.getElementById("photo_" + id).remove();
+            }
+        }
+
+        function updateTicker() {
+            const val = document.getElementById('editTicker').value;
+            if(val) {
+                database.ref('ticker_saved').set(val).then(() => { alert('تم التحديث!'); closeAdminPanel(); });
+            }
+        }
+
+        function updateFeaturedDoctor() {
+            const name = document.getElementById('editDocName').value;
+            const img = document.getElementById('editDocImg').value;
+            const desc = document.getElementById('editDocDesc').value;
+            if(name && desc) {
+                database.ref('featured_doctor').set({ name: name, img: img || "https://via.placeholder.com/150", desc: desc })
+                .then(() => { alert('تم التحديث!'); closeAdminPanel(); });
+            }
+        }
 
         function toggleThemeBar() {
             const bar = document.getElementById('themeSelector');
@@ -334,37 +531,13 @@
 
         function changeTheme(themeName) {
             document.body.className = ''; 
-            if(themeName !== 'default') {
-                document.body.classList.add('theme-' + themeName);
-            }
+            if(themeName !== 'default') { document.body.classList.add('theme-' + themeName); }
             localStorage.setItem('user_theme', themeName);
         }
 
         function toggleForm(formId) {
             document.querySelectorAll('.sub-form').forEach(form => form.style.display = 'none');
-            document.getElementById('adminForm').querySelector('.error-text').style.display = 'none';
-            document.getElementById(formId).style.display = 'block';
-        }
-
-        function verifyAdmin() {
-            if (document.getElementById('adminPass').value === 'salem1959') {
-                currentUser = "الإدارة"; isSystemAdmin = true;
-                localStorage.setItem('activeUser', currentUser); localStorage.setItem('activeRole', 'admin');
-                document.getElementById('adminLink').style.display = 'block';
-                document.querySelector('.admin-photo-trigger').style.display = 'block';
-                showDeleteButtons(true); enterSalon('admin');
-            } else {
-                document.getElementById('adminError').style.display = 'block';
-            }
-        }
-
-        function enterSalon(role) {
-            if(role === 'doctor') {
-                const name = document.getElementById('docName').value;
-                if(name.trim() !== "") currentUser = name;
-                localStorage.setItem('activeUser', currentUser); localStorage.setItem('activeRole', 'doctor');
-            }
-            bypassLogin();
+            if(document.getElementById(formId)) document.getElementById(formId).style.display = 'block';
         }
 
         function bypassLogin() {
@@ -374,14 +547,8 @@
         }
 
         function logout() {
-            isSystemAdmin = false;
-            localStorage.clear();
-            document.getElementById('adminLink').style.display = 'none';
-            document.querySelector('.admin-photo-trigger').style.display = 'none';
-            document.getElementById('appScreen').style.display = 'none';
-            document.getElementById('loginScreen').style.display = 'block';
-            document.body.className = ''; 
-            toggleForm('none');
+            isSystemAdmin = false; localStorage.clear();
+            location.reload();
         }
 
         function switchView(view) {
@@ -398,105 +565,12 @@
                 document.getElementById('tabChat').className = 'tab-btn';
                 document.getElementById('tabPhotos').className = 'tab-btn active';
                 document.getElementById('featuredCard').style.display = 'none';
-                document.getElementById('photoDot').style.display = 'none';
-                localStorage.setItem('photo_dot_active', 'false');
             }
         }
 
         function openAdminPanel() { document.getElementById('adminPanel').style.display = 'flex'; }
         function closeAdminPanel() { document.getElementById('adminPanel').style.display = 'none'; }
-
-        function updateTicker() {
-            const val = document.getElementById('editTicker').value;
-            if(val) {
-                document.getElementById('tickerText').innerText = val;
-                localStorage.setItem('ticker_saved', val);
-                alert('تم تحديث شريط المواعيد بنجاح لجميع الزملاء!');
-                closeAdminPanel();
-            }
-        }
-
-        function updateFeaturedDoctor() {
-            const name = document.getElementById('editDocName').value;
-            const img = document.getElementById('editDocImg').value;
-            const desc = document.getElementById('editDocDesc').value;
-            if(name && desc) {
-                document.getElementById('featuredName').innerText = name;
-                document.getElementById('featuredDesc').innerText = desc;
-                const finalImg = img ? img : "https://via.placeholder.com/150";
-                document.getElementById('featuredImg').src = finalImg;
-                localStorage.setItem('featured_name', name); localStorage.setItem('featured_desc', desc); localStorage.setItem('featured_img', finalImg);
-                alert('تم حفظ ونشر شخصية اليوم بنجاح!'); closeAdminPanel();
-            }
-        }
-
-        function clearFeaturedDoctor() {
-            if(confirm("تصفير بيانات البطاقة؟")) {
-                localStorage.removeItem('featured_name'); localStorage.removeItem('featured_desc'); localStorage.removeItem('featured_img');
-                location.reload();
-            }
-        }
-
-        function triggerPhotoUploadBox() {
-            switchView('photos');
-            openAdminPanel();
-            document.getElementById('adminPhotoBox').scrollIntoView({ behavior: 'smooth' });
-        }
-
-        function addNewPhotoToAlbum() {
-            const url = document.getElementById('newPhotoUrl').value;
-            const desc = document.getElementById('newPhotoDesc').value;
-            if(url && desc) {
-                const photoId = "photo_" + Date.now();
-                const card = document.createElement('div');
-                card.className = 'photo-card';
-                card.id = photoId;
-                card.innerHTML = `
-                    <img src="${url}" alt="ذكرى">
-                    <div class="photo-desc">${desc}<span class="photo-meta">بواسطة: الإدارة • ذكريات زمان</span></div>
-                    ${isSystemAdmin ? `<button class="delete-msg-btn admin-del-btn" style="display:block; position:absolute; top:10px; left:10px; background:white; padding:5px; border-radius:50%;" onclick="document.getElementById('${photoId}').remove()">🗑️</button>` : ''}
-                `;
-                document.getElementById('photoView').appendChild(card);
-                document.getElementById('newPhotoUrl').value = ''; document.getElementById('newPhotoDesc').value = '';
-                localStorage.setItem('photo_dot_active', 'true');
-                document.getElementById('photoDot').style.display = 'block';
-                alert('تم نشر الصورة وتفعيل إشعار التنبيه بنجاح للأعضاء!');
-                closeAdminPanel();
-                switchView('photos');
-            } else { alert('يرجى ملء رابط الصورة والوصف التاريخي لها.'); }
-        }
-
-        function pushMessage() {
-            const input = document.getElementById('chatInput');
-            const wall = document.getElementById('chatWall');
-            if (input.value.trim() !== "") {
-                const msgId = "msg_" + Date.now();
-                const wrapper = document.createElement('div');
-                wrapper.className = 'msg-wrapper sent-wrapper';
-                wrapper.id = msgId;
-                wrapper.innerHTML = `
-                    <div class="msg-bubble sent">
-                        <span class="msg-user">${currentUser}</span>
-                        <div>${input.value}</div>
-                        <span class="msg-time">الآن</span>
-                    </div>
-                    <button class="delete-msg-btn admin-del-btn" style="display: ${isSystemAdmin ? 'block' : 'none'}" onclick="document.getElementById('${msgId}').remove()">🗑️</button>
-                `;
-                wall.appendChild(wrapper); input.value = ""; wall.scrollTop = wall.scrollHeight;
-            }
-        }
-
-        function showDeleteButtons(show) {
-            setTimeout(() => {
-                document.querySelectorAll('.admin-del-btn').forEach(btn => btn.style.display = show ? 'block' : 'none');
-            }, 100);
-        }
-
-        function requestJoin() {
-            if(document.getElementById('regName').value) {
-                alert('تم إرسال طلب انضمامك بنجاح دكتور. الإدارة ستقوم بتفعيل حسابك قريباً جداً.'); logout();
-            }
-        }
+        function triggerPhotoUploadBox() { switchView('photos'); openAdminPanel(); document.getElementById('adminPhotoBox').scrollIntoView({ behavior: 'smooth' }); }
     </script>
 </body>
 </html>
