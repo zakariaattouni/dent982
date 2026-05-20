@@ -2,14 +2,66 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>منصة دفعة أسنان دمشق 82</title>
     
+    <!-- تحسينات PWA وعرض الأيقونة عند إضافة التطبيق إلى الشاشة الرئيسية -->
     <meta name="theme-color" content="#1a56db">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="أسنان 82">
-
+    <meta name="mobile-web-app-capable" content="yes">
+    
+    <!-- أيقونات تقليدية للمتصفح -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' fill='%231a56db' rx='96'/%3E%3Cpath fill='%23ffffff' d='M256 400c-88 0-160-64-160-144 0-56 32-104 64-128 16-12 32-20 48-24 8-2 16-2 24-2 8 0 16 0 24 2 16 4 32 12 48 24 32 24 64 72 64 128 0 80-72 144-160 144z'/%3E%3Crect x='216' y='140' width='80' height='120' fill='%231a56db' rx='12'/%3E%3Ctext x='256' y='380' font-family='Arial, sans-serif' font-size='72' font-weight='bold' fill='%23ffffff' text-anchor='middle'%3E1982%3C/text%3E%3C/svg%3E">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' fill='%231a56db' rx='96'/%3E%3Cpath fill='%23ffffff' d='M256 400c-88 0-160-64-160-144 0-56 32-104 64-128 16-12 32-20 48-24 8-2 16-2 24-2 8 0 16 0 24 2 16 4 32 12 48 24 32 24 64 72 64 128 0 80-72 144-160 144z'/%3E%3Crect x='216' y='140' width='80' height='120' fill='%231a56db' rx='12'/%3E%3Ctext x='256' y='380' font-family='Arial, sans-serif' font-size='72' font-weight='bold' fill='%23ffffff' text-anchor='middle'%3E1982%3C/text%3E%3C/svg%3E">
+    <!-- أيقونات بأحجام متعددة من نفس SVG لضمان التوافق -->
+    <link rel="icon" type="image/png" sizes="192x192" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' fill='%231a56db' rx='96'/%3E%3Cpath fill='%23ffffff' d='M256 400c-88 0-160-64-160-144 0-56 32-104 64-128 16-12 32-20 48-24 8-2 16-2 24-2 8 0 16 0 24 2 16 4 32 12 48 24 32 24 64 72 64 128 0 80-72 144-160 144z'/%3E%3Crect x='216' y='140' width='80' height='120' fill='%231a56db' rx='12'/%3E%3Ctext x='256' y='380' font-family='Arial, sans-serif' font-size='72' font-weight='bold' fill='%23ffffff' text-anchor='middle'%3E1982%3C/text%3E%3C/svg%3E">
+    <link rel="apple-touch-icon" sizes="180x180" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' fill='%231a56db' rx='96'/%3E%3Cpath fill='%23ffffff' d='M256 400c-88 0-160-64-160-144 0-56 32-104 64-128 16-12 32-20 48-24 8-2 16-2 24-2 8 0 16 0 24 2 16 4 32 12 48 24 32 24 64 72 64 128 0 80-72 144-160 144z'/%3E%3Crect x='216' y='140' width='80' height='120' fill='%231a56db' rx='12'/%3E%3Ctext x='256' y='380' font-family='Arial, sans-serif' font-size='72' font-weight='bold' fill='%23ffffff' text-anchor='middle'%3E1982%3C/text%3E%3C/svg%3E">
+    
+    <!-- ملف البيان (manifest) لتطبيق الويب التقدمي يتم إنشاؤه ديناميكياً لضمان الأيقونة -->
+    <script>
+        // إنشاء manifest.json ديناميكياً يحتوي على الأيقونة المخصصة (رمز السن + 1982)
+        (function() {
+            const iconSVG = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' fill='%231a56db' rx='96'/%3E%3Cpath fill='%23ffffff' d='M256 400c-88 0-160-64-160-144 0-56 32-104 64-128 16-12 32-20 48-24 8-2 16-2 24-2 8 0 16 0 24 2 16 4 32 12 48 24 32 24 64 72 64 128 0 80-72 144-160 144z'/%3E%3Crect x='216' y='140' width='80' height='120' fill='%231a56db' rx='12'/%3E%3Ctext x='256' y='380' font-family='Arial, sans-serif' font-size='72' font-weight='bold' fill='%23ffffff' text-anchor='middle'%3E1982%3C/text%3E%3C/svg%3E`;
+            const manifestObj = {
+                name: "دفعة أسنان دمشق 82",
+                short_name: "أسنان 82",
+                description: "منصة اجتماعية لدفعة طب الأسنان جامعة دمشق عام 1982",
+                start_url: ".",
+                display: "standalone",
+                theme_color: "#1a56db",
+                background_color: "#ffffff",
+                icons: [
+                    {
+                        src: iconSVG,
+                        sizes: "512x512",
+                        type: "image/svg+xml",
+                        purpose: "any maskable"
+                    },
+                    {
+                        src: iconSVG,
+                        sizes: "192x192",
+                        type: "image/svg+xml",
+                        purpose: "any maskable"
+                    },
+                    {
+                        src: iconSVG,
+                        sizes: "180x180",
+                        type: "image/svg+xml",
+                        purpose: "apple touch icon"
+                    }
+                ]
+            };
+            const manifestBlob = new Blob([JSON.stringify(manifestObj)], {type: "application/json"});
+            const manifestURL = URL.createObjectURL(manifestBlob);
+            const linkManifest = document.createElement('link');
+            linkManifest.rel = 'manifest';
+            linkManifest.href = manifestURL;
+            document.head.appendChild(linkManifest);
+        })();
+    </script>
+    
     <!-- مكتبات فايربيس الأساسية المستقرة -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
