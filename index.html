@@ -47,8 +47,7 @@
         .card-content p { font-size: 13px; color: #475569; line-height: 1.4; }
         
         /* غرفة الدردشة */
-        .chat-area { flex: 1; display: flex; flex-direction: column; overflow: hidden; background-color: #f1f5f9; position: relative; padding-bottom: 70px; /* ترك مساحة مسبقة لصندوق الإدخال الثابت */ }
-        .messages-container { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+        .chat-area { flex: 1; display: flex; flex-direction: column; overflow: hidden; background-color: #f1f5f9; position: relative; padding-bottom: 70px; /* ترك مساحة مسبقة لصندوق الإدخال الثابت */ }        .messages-container { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
         .message-card { background: white; border-radius: 16px; padding: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); border-right: 4px solid #1a56db; transition: 0.1s; }
         .msg-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; font-size: 12px; color: #1a56db; font-weight: bold; }
         .msg-name { display: flex; align-items: center; gap: 6px; }
@@ -58,6 +57,8 @@
         .msg-actions { display: flex; gap: 16px; margin-top: 8px; font-size: 12px; }
         .action-btn { background: none; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; color: #64748b; font-size: 12px; padding: 4px 8px; border-radius: 20px; transition: 0.2s; }
         .action-btn:hover { background-color: #eef2ff; color: #1a56db; }
+        .action-btn.delete-btn { color: #ef4444; }
+        .action-btn.delete-btn:hover { background-color: #fef2f2; color: #dc2626; }
         .reply-indicator { background: #eef2ff; padding: 6px 12px; border-radius: 12px; margin-bottom: 8px; font-size: 12px; border-right: 2px solid #1a56db; }
         .replies-box { margin-top: 10px; padding-right: 20px; border-right: 2px solid #e2e8f0; display: flex; flex-direction: column; gap: 8px; }
         .reply-card { background: #f8fafc; border-radius: 12px; padding: 8px 12px; border-right: 2px solid #10b981; margin-bottom: 6px; }
@@ -95,8 +96,7 @@
     <h2>دفعة أسنان دمشق 82</h2>
     <div class="desc">المنصة الاجتماعية لزملاء الحرف والعمر</div>
     <button class="btn-blue" onclick="toggleForm('adminForm')">الإدارة</button>
-    <button class="btn-blue" onclick="toggleForm('doctorForm')">الطبيب</button>
-    <button class="btn-blue" onclick="toggleForm('registerForm')">تسجيل جديد</button>
+    <button class="btn-blue" onclick="toggleForm('doctorForm')">الطبيب</button>    <button class="btn-blue" onclick="toggleForm('registerForm')">تسجيل جديد</button>
     <div id="adminForm" class="sub-form">
         <h3>دخول الإدارة</h3>
         <input type="password" id="adminPass" class="form-control" placeholder="كلمة السر">
@@ -145,8 +145,7 @@
         <div class="card-content">
             <span class="card-tag">🌟 شخصية اليوم</span>
             <h4 id="featuredName">الدكتور الزميل</h4>
-            <p id="featuredDesc">اضغط على رمز الترس (⚙️) لتعديل بيانات شخصية اليوم العطرة.</p>
-        </div>
+            <p id="featuredDesc">اضغط على رمز الترس (⚙️) لتعديل بيانات شخصية اليوم العطرة.</p>        </div>
     </div>
     
     <!-- غرفة الدردشة المستقلة بكل خياراتها -->
@@ -195,8 +194,7 @@
         <div class="section-box">
             <h3>🖼️ إضافة صورة لألبوم الذكريات (منفصل)</h3>
             <input type="text" id="newPhotoUrl" class="form-control" placeholder="رابط الصورة">
-            <input type="text" id="newPhotoDesc" class="form-control" placeholder="وصف الصورة">
-            <button class="btn-blue" style="background-color:#10b981;" onclick="addPhotoToAlbum()">نشر في الألبوم</button>
+            <input type="text" id="newPhotoDesc" class="form-control" placeholder="وصف الصورة">            <button class="btn-blue" style="background-color:#10b981;" onclick="addPhotoToAlbum()">نشر في الألبوم</button>
         </div>
     </div>
 </div>
@@ -245,8 +243,7 @@
     }
     
     function handleImageUpload(e) {
-        let file = e.target.files[0];
-        if(file && file.type.startsWith('image/')) {
+        let file = e.target.files[0];        if(file && file.type.startsWith('image/')) {
             if(file.size > 2 * 1024 * 1024) { alert("الصورة كبيرة جداً (حد أقصى 2 ميجا)"); return; }
             let reader = new FileReader();
             reader.onload = function(ev) {
@@ -287,7 +284,15 @@
         document.getElementById('replyPreviewDiv').style.display = 'none';
     }
     
-    // عرض الرسائل والردود بشكل متداخل
+    function deleteMessage(msgId) {
+        if(!isSystemAdmin) return;
+        if(confirm('هل أنت متأكد من حذف هذه الرسالة نهائياً؟')) {
+            database.ref(`chat_messages/${msgId}`).remove()
+                .then(() => console.log('تم حذف الرسالة'))
+                .catch(err => alert("خطأ في الحذف: "+err));
+        }
+    }
+        // عرض الرسائل والردود بشكل متداخل
     let allMessages = {};
     function renderAllMessages() {
         let container = document.getElementById('messagesContainer');
@@ -315,6 +320,7 @@
                 <div class="msg-actions">
                     <button class="action-btn" onclick="likeMessage('${parent.key}', ${parent.likes||0}, ${JSON.stringify(parent.likedBy||[])}, event)">👍 ${parent.likes||0}</button>
                     <button class="action-btn" onclick="replyToMessage('${parent.key}','${escapeHtml(parent.user)}','${escapeHtml(parent.text).substring(0,50)}')">💬 رد</button>
+                    ${isSystemAdmin ? `<button class="action-btn delete-btn" onclick="deleteMessage('${parent.key}')">🗑️ حذف</button>` : ''}
                 </div>
                 <div class="replies-box" id="replies-${parent.key}"></div>
             `;
@@ -333,15 +339,15 @@
                     ${replyImage}
                     <div class="msg-actions">
                         <button class="action-btn" onclick="likeMessage('${reply.key}', ${reply.likes||0}, ${JSON.stringify(reply.likedBy||[])}, event)">👍 ${reply.likes||0}</button>
+                        ${isSystemAdmin ? `<button class="action-btn delete-btn" onclick="deleteMessage('${reply.key}')">🗑️</button>` : ''}
                     </div>
-                `;
-                repliesBox.appendChild(replyDiv);
+                `;                repliesBox.appendChild(replyDiv);
             });
         });
         container.scrollTop = container.scrollHeight;
     }
     
-    function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, function(m){ if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
+    function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, function(m){ if(m==='&') return '&'; if(m==='<') return '<'; if(m==='>') return '>'; return m;}); }
     
     if(database) {
         database.ref('chat_messages').on('child_added', (snap) => { allMessages[snap.key] = snap.val(); renderAllMessages(); });
@@ -384,8 +390,7 @@
         });
     }
     
-    function requestJoin() {
-        let name = document.getElementById('regName').value.trim();
+    function requestJoin() {        let name = document.getElementById('regName').value.trim();
         let phone = document.getElementById('regPhone').value.trim();
         let pass = document.getElementById('regPass').value.trim();
         if(!name || !phone || !pass) { alert('يرجى ملء جميع الحقول'); return; }
@@ -434,8 +439,7 @@
     function rejectDoctor(id) {
         if(confirm('هل أنت متأكد من رفض هذا الطلب؟')) database.ref('join_requests/' + id).remove();
     }
-    
-    function listenToApprovedDoctors() {
+        function listenToApprovedDoctors() {
         if(!database) return;
         database.ref('verified_doctors').on('value', snap => {
             let container = document.getElementById('approvedDoctorsContainer');
@@ -484,8 +488,7 @@
             database.ref('photo_album').push({ url, desc, timestamp: Date.now() }).then(() => {
                 alert('تمت إضافة الصورة إلى ألبوم الذكريات');
                 document.getElementById('newPhotoUrl').value = '';
-                document.getElementById('newPhotoDesc').value = '';
-                closeAdminPanel();
+                document.getElementById('newPhotoDesc').value = '';                closeAdminPanel();
             });
         } else alert('الرجاء إدخال رابط الصورة والوصف');
     }
@@ -534,8 +537,7 @@
                 if(d) {
                     document.getElementById('featuredName').innerText = d.name;
                     document.getElementById('featuredDesc').innerText = d.desc;
-                    document.getElementById('featuredImg').src = d.img || "https://via.placeholder.com/150";
-                }
+                    document.getElementById('featuredImg').src = d.img || "https://via.placeholder.com/150";                }
             });
             listenToOnlineUsers();
         }
@@ -584,8 +586,7 @@
         if(database && currentUser) database.ref('online_users/' + btoa(encodeURIComponent(currentUser))).remove();
         localStorage.clear();
         location.reload();
-    }
-    
+    }    
     function toggleThemeBar() {
         let tb = document.getElementById('themeSelector');
         tb.style.display = (tb.style.display === 'flex') ? 'none' : 'flex';
