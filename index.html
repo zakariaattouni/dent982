@@ -90,6 +90,7 @@
     </style>
 </head>
 <body>
+
 <!-- شاشة الدخول -->
 <div class="login-wrapper" id="loginScreen">
     <h2>دفعة أسنان دمشق 82</h2>
@@ -117,6 +118,7 @@
         <button class="btn-blue" style="background-color:#057a55;" onclick="requestJoin()">إرسال الطلب للاعتماد</button>
     </div>
 </div>
+
 <!-- التطبيق الرئيسي -->
 <div class="app-container" id="appScreen">
     <div class="app-header">
@@ -196,6 +198,7 @@
         </div>
     </div>
 </div>
+
 <script>
     // Firebase configuration
     const firebaseConfig = {
@@ -548,6 +551,7 @@
             }
             bypassLogin();
         }
+
         // معالجة ذكية للكيبورد لمنع تداخله مع شريط الكتابة على الهواتف المحمولة
         if ('visualViewport' in window) {
             window.visualViewport.addEventListener('resize', () => {
