@@ -10,7 +10,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="أسنان 82">
 
-    <!-- مكتبات فايربيس الأساسية -->
+    <!-- مكتبات فايربيس الأساسية المستقرة -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     
@@ -284,7 +284,7 @@
 
     <!-- ================= الجزء البرمجي الذكي والمحمي الشامل ================= -->
     <script>
-        // دالة الدخول الفورية للإدارة - تعمل محلياً ومباشرة دون انتظار الفايربيس
+        // دالة الدخول الفورية للإدارة
         function verifyAdmin() {
             try {
                 const adminInputPass = document.getElementById('adminPass').value.trim();
@@ -295,13 +295,12 @@
                     
                     if (document.getElementById('adminError')) document.getElementById('adminError').style.display = 'none';
                     
-                    // تفعيل صلاحيات الإدارة محلياً لتفادي أي تجميد
                     isSystemAdmin = true;
                     if(document.getElementById('adminLink')) document.getElementById('adminLink').style.display = 'block';
                     if(document.querySelector('.admin-photo-trigger')) document.querySelector('.admin-photo-trigger').style.display = 'block';
                     
-                    // فتح الشاشة فوراً
                     bypassLogin();
+                    listenToJoinRequests(); // تشغيل مستمع الطلبات للإدارة
                 } else {
                     if (document.getElementById('adminError')) document.getElementById('adminError').style.display = 'block';
                 }
@@ -310,63 +309,61 @@
             }
         }
 
-        // إعدادات الفايربيس الافتراضية (استبدلها ببيانات مشروعك الحقيقية لاحقاً)
+        // ======= تم ربط بيانات الـ Firebase الحقيقية للمشروع بنجاح =======
         const firebaseConfig = { 
-            apiKey: "API_KEY", 
-            authDomain: "PROJECT.firebaseapp.com", 
-            databaseURL: "DATABASE_URL", 
-            projectId: "PROJECT", 
-            storageBucket: "PROJECT.appspot.com", 
-            messagingSenderId: "0000", 
-            appId: "0000" 
+            apiKey: "AIzaSyC-hm_sERH7LXy4vo-GcBjU2HLH3YdohAA", 
+            authDomain: "dent82-52dc2.firebaseapp.com", 
+            databaseURL: "https://dent82-52dc2-default-rtdb.firebaseio.com", 
+            projectId: "dent82-52dc2", 
+            storageBucket: "dent82-52dc2.firebasestorage.app", 
+            messagingSenderId: "100835754580", 
+            appId: "1:100835754580:web:ca20b857f3f778c162e3c1"
         };
 
         let database = null;
         let currentUser = "طبيب زميل";
         let isSystemAdmin = false;
 
-        // محاولة تشغيل الفايربيس بحماية تمنع الانهيار
         try {
             firebase.initializeApp(firebaseConfig);
             database = firebase.database();
         } catch (firebaseError) {
-            console.error("تنبيه: الفايربيس يعمل ببيانات وهمية، تم تشغيل النمط المحلي الآمن.");
+            console.error("خطأ في الاتصال بقاعدة البيانات.");
         }
 
         window.onload = function() {
             if(localStorage.getItem('user_theme')) { changeTheme(localStorage.getItem('user_theme')); }
 
-            // تشغيل مستمعي قاعدة البيانات فقط إذا كانت البيانات حقيقية ومعدلة
-            if (database && firebaseConfig.databaseURL !== "DATABASE_URL") {
-                try {
-                    database.ref('ticker_saved').on('value', snapshot => {
-                        if(snapshot.val()) document.getElementById('tickerText').innerText = snapshot.val();
-                    });
+            if (database) {
+                // 1. مزامنة شريط الإعلانات
+                database.ref('ticker_saved').on('value', snapshot => {
+                    if(snapshot.val()) document.getElementById('tickerText').innerText = snapshot.val();
+                });
 
-                    database.ref('featured_doctor').on('value', snapshot => {
-                        const data = snapshot.val();
-                        if(data) {
-                            document.getElementById('featuredName').innerText = data.name || "الدكتور الزميل";
-                            document.getElementById('featuredDesc').innerText = data.desc || "";
-                            document.getElementById('featuredImg').src = data.img || "https://via.placeholder.com/150";
-                        }
-                    });
+                // 2. مزامنة شخصية اليوم
+                database.ref('featured_doctor').on('value', snapshot => {
+                    const data = snapshot.val();
+                    if(data) {
+                        document.getElementById('featuredName').innerText = data.name || "الدكتور الزميل";
+                        document.getElementById('featuredDesc').innerText = data.desc || "";
+                        document.getElementById('featuredImg').src = data.img || "https://via.placeholder.com/150";
+                    }
+                });
 
-                    database.ref('chat_messages').limitToLast(40).on('child_added', snapshot => {
-                        const msg = snapshot.val();
-                        appendMessageToWall(snapshot.key, msg.user, msg.text, msg.time, msg.isSentByAdmin);
-                    });
+                // 3. تحميل رسائل الدردشة الحية فوراً
+                database.ref('chat_messages').limitToLast(50).on('child_added', snapshot => {
+                    const msg = snapshot.val();
+                    appendMessageToWall(snapshot.key, msg.user, msg.text, msg.time, msg.isSentByAdmin);
+                });
 
-                    database.ref('photo_album').on('child_added', snapshot => {
-                        const photo = snapshot.val();
-                        appendPhotoToAlbum(snapshot.key, photo.url, photo.desc);
-                    });
-                } catch(dbError) {
-                    console.log("قاعدة البيانات بانتظار التهيئة الصحيحة.");
-                }
+                // 4. تحميل الصور في الألبوم
+                database.ref('photo_album').on('child_added', snapshot => {
+                    const photo = snapshot.val();
+                    appendPhotoToAlbum(snapshot.key, photo.url, photo.desc);
+                });
             }
 
-            // فحص الجلسة المخزنة سابقاً بحماية
+            // فحص الجلسة المستمرة للمستخدم
             try {
                 if(localStorage.getItem('activeUser')) {
                     currentUser = localStorage.getItem('activeUser');
@@ -374,12 +371,14 @@
                         isSystemAdmin = true;
                         if(document.getElementById('adminLink')) document.getElementById('adminLink').style.display = 'block';
                         if(document.querySelector('.admin-photo-trigger')) document.querySelector('.admin-photo-trigger').style.display = 'block';
+                        listenToJoinRequests();
                     }
                     bypassLogin();
                 }
-            } catch(e) { console.log("No session cached."); }
+            } catch(e) { console.log("No cache found."); }
         };
 
+        // تسجيل دخول الأطباء المعتمدين من قاعدة البيانات الفعليين
         function verifyDoctorLogin() {
             const name = document.getElementById('docName').value.trim();
             const pass = document.getElementById('docPass').value.trim();
@@ -387,23 +386,23 @@
             
             if(!name || !pass) { if(errorDiv) errorDiv.style.display = 'block'; return; }
             
-            if (database && firebaseConfig.databaseURL !== "DATABASE_URL") {
+            if (database) {
                 database.ref('verified_doctors/' + btoa(encodeURIComponent(name))).once('value', snapshot => {
                     const userData = snapshot.val();
                     if(userData && userData.password === pass) {
                         currentUser = name;
-                        localStorage.setItem('activeUser', currentUser); localStorage.setItem('activeRole', 'doctor');
+                        localStorage.setItem('activeUser', currentUser); 
+                        localStorage.setItem('activeRole', 'doctor');
                         if(errorDiv) errorDiv.style.display = 'none';
                         bypassLogin();
                     } else {
                         if(errorDiv) errorDiv.style.display = 'block';
                     }
                 });
-            } else {
-                alert("عذراً، دخول الأطباء المشتركين يتطلب وضع روابط الفايربيس الحقيقية أولاً لاستدعاء بياناتهم.");
             }
         }
 
+        // إرسال طلب انضمام طبيب جديد لقاعدة البيانات
         function requestJoin() {
             const name = document.getElementById('regName').value.trim();
             const phone = document.getElementById('regPhone').value.trim();
@@ -411,15 +410,71 @@
             
             if(!name || !phone || !pass) { alert('يرجى ملء الحقول بالكامل دكتور.'); return; }
             
-            if (database && firebaseConfig.databaseURL !== "DATABASE_URL") {
+            if (database) {
                 database.ref('join_requests').push({ name: name, phone: phone, pass: pass })
                 .then(() => {
-                    alert('تم إرسال طلب انضمامك بنجاح.');
-                    document.getElementById('regName').value = ""; document.getElementById('regPhone').value = ""; document.getElementById('regPass').value = "";
+                    alert('تم إرسال طلب انضمامك بنجاح وجاري مراجعته من قبل الإدارة لتفعيله.');
+                    document.getElementById('regName').value = ""; 
+                    document.getElementById('regPhone').value = ""; 
+                    document.getElementById('regPass').value = "";
                     toggleForm('none');
+                }).catch(err => {
+                    alert("خطأ: يرجى التأكد من ضبط الـ Rules إلى true في حساب فايربيس.");
                 });
-            } else {
-                alert("يجب ربط الفايربيس الحقيقي أولاً لاستقبال وتخزين طلبات انضمام الأطباء.");
+            }
+        }
+
+        // نظام معالجة وعرض طلبات الانضمام في لوحة تحكم الإدارة
+        function listenToJoinRequests() {
+            if (database) {
+                database.ref('join_requests').on('value', snapshot => {
+                    const container = document.getElementById('requestsListContainer');
+                    const badge = document.getElementById('adminBadge');
+                    container.innerHTML = "";
+                    
+                    const data = snapshot.val();
+                    if(!data) {
+                        container.innerHTML = '<p style="font-size: 13px; color: #64748b; text-align: center; padding: 10px;">لا توجد طلبات انضمام معلقة حالياً.</p>';
+                        if(badge) badge.style.display = 'none';
+                        return;
+                    }
+                    
+                    if(badge) badge.style.display = 'block';
+                    
+                    Object.keys(data).forEach(key => {
+                        const req = data[key];
+                        const item = document.createElement('div');
+                        item.className = 'request-item';
+                        item.innerHTML = `
+                            <div class="req-info">
+                                <h5>د. ${req.name}</h5>
+                                <p>الهاتف: ${req.phone} | الرمز المختار: ${req.pass}</p>
+                            </div>
+                            <div class="req-actions">
+                                <button class="btn-action btn-approve" onclick="approveDoctor('${key}', '${req.name}', '${req.pass}')">اعتماد الحساب</button>
+                                <button class="btn-action btn-reject" onclick="rejectDoctor('${key}')">حذف</button>
+                            </div>
+                        `;
+                        container.appendChild(item);
+                    });
+                });
+            }
+        }
+
+        function approveDoctor(id, name, password) {
+            if(database) {
+                database.ref('verified_doctors/' + btoa(encodeURIComponent(name))).set({
+                    password: password
+                }).then(() => {
+                    database.ref('join_requests/' + id).remove();
+                    alert(`تم اعتماد الحساب بنجاح! يمكن لـ د. ${name} الدخول الآن.`);
+                });
+            }
+        }
+
+        function rejectDoctor(id) {
+            if(database && confirm("هل أنت متأكد من رفض وحذف هذا الطلب؟")) {
+                database.ref('join_requests/' + id).remove();
             }
         }
 
@@ -446,16 +501,13 @@
                 const now = new Date();
                 const timeStr = now.toLocaleTimeString('ar-SY', { hour: '2-digit', minute: '2-digit' });
                 
-                if (database && firebaseConfig.databaseURL !== "DATABASE_URL") {
+                if (database) {
                     database.ref('chat_messages').push({
                         user: currentUser,
                         text: input.value,
                         time: timeStr,
                         isSentByAdmin: isSystemAdmin
                     });
-                } else {
-                    // محاكاة محلية آمنة في حال تشغيله للتجربة دون فايربيس
-                    appendMessageToWall("local_" + Date.now(), currentUser, input.value, timeStr, isSystemAdmin);
                 }
                 input.value = "";
             }
@@ -477,16 +529,15 @@
             const url = document.getElementById('newPhotoUrl').value;
             const desc = document.getElementById('newPhotoDesc').value;
             if(url && desc) {
-                if (database && firebaseConfig.databaseURL !== "DATABASE_URL") {
+                if (database) {
                     database.ref('photo_album').push({ url: url, desc: desc })
                     .then(() => {
-                        document.getElementById('newPhotoUrl').value = ''; document.getElementById('newPhotoDesc').value = '';
+                        document.getElementById('newPhotoUrl').value = ''; 
+                        document.getElementById('newPhotoDesc').value = '';
                         alert('تم نشر الصورة بنجاح في الألبوم!');
                         closeAdminPanel();
                         switchView('photos');
                     });
-                } else {
-                    alert("الرجاء ربط الفايربيس الفعلي لتتمكن من حفظ ونشر الصور في الألبوم الدائم.");
                 }
             }
         }
@@ -494,12 +545,11 @@
         function updateTicker() {
             const val = document.getElementById('editTicker').value;
             if(val) {
-                if (database && firebaseConfig.databaseURL !== "DATABASE_URL") {
-                    database.ref('ticker_saved').set(val).then(() => { alert('تم التحديث الإعلاني!'); closeAdminPanel(); });
-                } else {
-                    document.getElementById('tickerText').innerText = val;
-                    alert('تم التحديث محلياً بنجاح!');
-                    closeAdminPanel();
+                if (database) {
+                    database.ref('ticker_saved').set(val).then(() => { 
+                        alert('تم التحديث الإعلاني بنجاح واهتز به شريط المنصة عند الجميع!'); 
+                        closeAdminPanel(); 
+                    });
                 }
             }
         }
@@ -509,15 +559,12 @@
             const img = document.getElementById('editDocImg').value;
             const desc = document.getElementById('editDocDesc').value;
             if(name && desc) {
-                if (database && firebaseConfig.databaseURL !== "DATABASE_URL") {
+                if (database) {
                     database.ref('featured_doctor').set({ name: name, img: img || "https://via.placeholder.com/150", desc: desc })
-                    .then(() => { alert('تم تحديث شخصية اليوم بنجاح!'); closeAdminPanel(); });
-                } else {
-                    document.getElementById('featuredName').innerText = name;
-                    document.getElementById('featuredDesc').innerText = desc;
-                    document.getElementById('featuredImg').src = img || "https://via.placeholder.com/150";
-                    alert('تم التحديث محلياً بنجاح!');
-                    closeAdminPanel();
+                    .then(() => { 
+                        alert('تم تحديث بيانات شخصية اليوم بنجاح العطرة!'); 
+                        closeAdminPanel(); 
+                    });
                 }
             }
         }
@@ -545,7 +592,8 @@
         }
 
         function logout() {
-            isSystemAdmin = false; localStorage.clear();
+            isSystemAdmin = false; 
+            localStorage.clear();
             location.reload();
         }
 
@@ -570,6 +618,12 @@
                 if(tabPhotos) tabPhotos.className = 'tab-btn active';
                 if(featuredCard) featuredCard.style.display = 'none';
             }
+        }
+
+        function triggerPhotoUploadBox() {
+            openAdminPanel();
+            const box = document.getElementById('adminPhotoBox');
+            if(box) box.scrollIntoView({ behavior: 'smooth' });
         }
 
         function openAdminPanel() { if(document.getElementById('adminPanel')) document.getElementById('adminPanel').style.display = 'flex'; }
