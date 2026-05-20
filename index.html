@@ -76,6 +76,25 @@
         .header-btn:hover { background-color: rgba(255, 255, 255, 0.15); }
         .admin-trigger { font-size: 18px; display: none; padding: 6px 10px; }
 
+        /* شريط المتصلين الآن الجديد والقابل للتمرير الجانبي */
+        .online-bar {
+            background-color: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 8px 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            overflow-x: auto;
+            white-space: nowrap;
+            -webkit-overflow-scrolling: touch;
+        }
+        .online-bar::-webkit-scrollbar { height: 4px; }
+        .online-bar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .online-title { font-size: 11px; font-weight: bold; color: #10b981; background: #e6f4ea; padding: 3px 8px; border-radius: 12px; display: flex; align-items: center; gap: 4px; }
+        .online-list { display: flex; gap: 8px; align-items: center; }
+        .online-user-badge { font-size: 12px; font-weight: 500; color: #334155; background: white; padding: 4px 10px; border-radius: 15px; border: 1px solid #e2e8f0; display: inline-flex; align-items: center; gap: 5px; }
+        .online-dot-active { width: 7px; height: 7px; background-color: #10b981; border-radius: 50%; display: inline-block; }
+
         /* لوحة اختيار الخلفية */
         .theme-selector { display: none; background: #1e293b; padding: 10px; justify-content: center; gap: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); z-index: 9; }
         .theme-dot { width: 24px; height: 24px; border-radius: 50%; cursor: pointer; border: 2px solid white; transition: transform 0.2s; }
@@ -133,6 +152,8 @@
 
         /* القوالب اللونية */
         body.theme-dark .view-content { background-color: #0f172a; }
+        body.theme-dark .online-bar { background-color: #1e293b; border-bottom-color: #334155; }
+        body.theme-dark .online-user-badge { background: #0f172a; color: #cbd5e1; border-color: #334155; }
         body.theme-dark .featured-card { background-color: #1e293b; border-bottom-color: #334155; }
         body.theme-dark .featured-card h4 { color: #f8fafc; }
         body.theme-dark .featured-card p { color: #cbd5e1; }
@@ -148,7 +169,6 @@
         .section-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 15px; margin-bottom: 20px; }
         .section-box h3 { font-size: 15px; color: #1e293b; margin-bottom: 12px; border-right: 3px solid #1a56db; padding-right: 8px; display: flex; justify-content: space-between; align-items: center; }
         
-        /* تصميم ميزة الطي والتمديد للقوائم */
         .collapse-toggle-btn { background: #e2e8f0; color: #475569; border: none; font-size: 11px; padding: 3px 8px; border-radius: 4px; cursor: pointer; font-weight: normal; }
         .collapse-toggle-btn:hover { background: #cbd5e1; }
         .collapsible-content { display: block; margin-top: 10px; }
@@ -215,6 +235,14 @@
             </button>
         </div>
 
+        <!-- الميزة الجديدة المضافة بطلبك دكتور: شريط المتصلين المحدث أفقيًا يراه الجميع -->
+        <div class="online-bar" id="onlinePresenceBar">
+            <div class="online-title"><span class="online-dot-active"></span> متصل الآن:</div>
+            <div class="online-list" id="onlineUsersContainer">
+                <span style="font-size:11px; color:#94a3b8;">لا يوجد أحد في الصالون حالياً</span>
+            </div>
+        </div>
+
         <div class="theme-selector" id="themeSelector">
             <div class="theme-dot" style="background-color: #f1f5f9;" onclick="changeTheme('default')"></div>
             <div class="theme-dot" style="background-color: #fcf8f2;" onclick="changeTheme('beige')"></div>
@@ -256,7 +284,6 @@
                 <span class="close-panel" onclick="closeAdminPanel()">إغلاق العودة للصالون ✖</span>
             </div>
 
-            <!-- قائمة طلبات الانضمام المعلقة -->
             <div class="section-box" style="border: 2px solid #1a56db; background: #f0fdf4;">
                 <h3>
                     طلبات الانضمام والموافقة (الأطباء الجدد)
@@ -269,13 +296,12 @@
                 </div>
             </div>
 
-            <!-- الميزة الجديدة المضافة بطلبك دكتور: قائمة الأطباء المعتمدين القابلة للطي -->
             <div class="section-box" style="border: 1px solid #10b981; background: #f6fbf8;">
                 <h3>
                     قائمة الزملاء المعتمدين في المنصة
                     <button class="collapse-toggle-btn" onclick="toggleCollapse('approvedDoctorsBox')">طي / عرض</button>
                 </h3>
-                <div id="approvedDoctorsBox" class="collapsible-content" style="display: none;"> <!-- مخفية افتراضياً لراحة العين وترتيب الشاشة -->
+                <div id="approvedDoctorsBox" class="collapsible-content" style="display: none;">
                     <div id="approvedDoctorsContainer">
                         <p style="font-size: 13px; color: #64748b; text-align: center; padding: 10px;">جاري تحميل القائمة الحية للصالون...</p>
                     </div>
@@ -305,9 +331,8 @@
         </div>
     </div>
 
-    <!-- ================= الجزء البرمجي الشامل ================= -->
+    <!-- ================= الجزء البرمجي الشامل المحدث ================= -->
     <script>
-        // دالة الدخول الفورية للإدارة
         function verifyAdmin() {
             try {
                 const adminInputPass = document.getElementById('adminPass').value.trim();
@@ -315,25 +340,20 @@
                     currentUser = "الإدارة";
                     localStorage.setItem('activeUser', currentUser); 
                     localStorage.setItem('activeRole', 'admin');
-                    
                     if (document.getElementById('adminError')) document.getElementById('adminError').style.display = 'none';
-                    
                     isSystemAdmin = true;
                     if(document.getElementById('adminLink')) document.getElementById('adminLink').style.display = 'block';
                     if(document.querySelector('.admin-photo-trigger')) document.querySelector('.admin-photo-trigger').style.display = 'block';
                     
                     bypassLogin();
                     listenToJoinRequests(); 
-                    listenToApprovedDoctors(); // تشغيل مزامنة قائمة الأطباء المعتمدين فوراً عند دخول الإدارة
+                    listenToApprovedDoctors();
                 } else {
                     if (document.getElementById('adminError')) document.getElementById('adminError').style.display = 'block';
                 }
-            } catch(e) {
-                alert("حدث خطأ أثناء محاولة الدخول: " + e.message);
-            }
+            } catch(e) { alert("حدث خطأ أثناء محاولة الدخول: " + e.message); }
         }
 
-        // تكوين Firebase الحقيقي الخاص بك دكتور
         const firebaseConfig = { 
             apiKey: "AIzaSyC-hm_sERH7LXy4vo-GcBjU2HLH3YdohAA", 
             authDomain: "dent82-52dc2.firebaseapp.com", 
@@ -351,9 +371,7 @@
         try {
             firebase.initializeApp(firebaseConfig);
             database = firebase.database();
-        } catch (firebaseError) {
-            console.error("خطأ في الاتصال بقاعدة البيانات.");
-        }
+        } catch (firebaseError) { console.error("خطأ في الاتصال بقاعدة البيانات."); }
 
         window.onload = function() {
             if(localStorage.getItem('user_theme')) { changeTheme(localStorage.getItem('user_theme')); }
@@ -381,6 +399,9 @@
                     const photo = snapshot.val();
                     appendPhotoToAlbum(snapshot.key, photo.url, photo.desc);
                 });
+
+                // تفعيل الاستماع الحي لقائمة المتصلين بالصالون لتعرض للجميع
+                listenToOnlineUsers();
             }
 
             try {
@@ -398,15 +419,52 @@
             } catch(e) { console.log("No cache found."); }
         };
 
-        // دالة طي وفرد القوائم البرمجية بالتبادل
-        function toggleCollapse(elementId) {
-            const content = document.getElementById(elementId);
-            if(content) {
-                content.style.display = (content.style.display === 'none' || content.style.display === '') ? 'block' : 'none';
+        // دالة حية لتحديث حالة تواجد الطبيب الحالي (Heartbeat) كل دقيقة
+        function setUserOnlineHeartbeat() {
+            if(database && currentUser) {
+                const encodedUser = btoa(encodeURIComponent(currentUser));
+                database.ref('online_users/' + encodedUser).set({
+                    name: currentUser,
+                    last_seen: Date.now()
+                });
             }
         }
 
-        // نظام جلب ومزامنة الزملاء المعتمدين حالياً بالصالون
+        // الاستماع الحي لشريط المتصلين بالصالون وتصفية الحسابات الخاملة
+        function listenToOnlineUsers() {
+            if(database) {
+                database.ref('online_users').on('value', snapshot => {
+                    const container = document.getElementById('onlineUsersContainer');
+                    container.innerHTML = "";
+                    const data = snapshot.val();
+                    const cutOffTime = Date.now() - (2 * 60 * 1000); // إخفاء من انقطع أكثر من دقيقتين
+                    let count = 0;
+
+                    if(data) {
+                        Object.keys(data).forEach(key => {
+                            const userObj = data[key];
+                            if(userObj.last_seen > cutOffTime) {
+                                count++;
+                                const badge = document.createElement('span');
+                                badge.className = 'online-user-badge';
+                                badge.innerHTML = `<span class="online-dot-active"></span> د. ${userObj.name}`;
+                                container.appendChild(badge);
+                            }
+                        });
+                    }
+
+                    if(count === 0) {
+                        container.innerHTML = '<span style="font-size:11px; color:#94a3b8;">لا يوجد أحد في الصالون حالياً</span>';
+                    }
+                });
+            }
+        }
+
+        function toggleCollapse(elementId) {
+            const content = document.getElementById(elementId);
+            if(content) { content.style.display = (content.style.display === 'none' || content.style.display === '') ? 'block' : 'none'; }
+        }
+
         function listenToApprovedDoctors() {
             if (database) {
                 database.ref('verified_doctors').on('value', snapshot => {
@@ -439,7 +497,6 @@
             }
         }
 
-        // دالة إلغاء أو حذف طبيب معتمد من لوحة الإدارة
         function removeApprovedDoctor(encodedKey, docName) {
             if(database && confirm(`هل أنت متأكد تماماً من سحب اعتماد حساب د. ${docName} ومنعه من دخول الصالون؟`)) {
                 database.ref('verified_doctors/' + encodedKey).remove().then(() => {
@@ -653,10 +710,19 @@
         function bypassLogin() {
             if(document.getElementById('loginScreen')) document.getElementById('loginScreen').style.display = 'none';
             if(document.getElementById('appScreen')) document.getElementById('appScreen').style.display = 'flex';
+            
+            // إرسال أول نبضة تواجد وتكرارها كل دقيقة طالما المتصفح مفتوح
+            setUserOnlineHeartbeat();
+            setInterval(setUserOnlineHeartbeat, 60000);
+
             switchView('chat');
         }
 
         function logout() {
+            if(database && currentUser) {
+                const encodedUser = btoa(encodeURIComponent(currentUser));
+                database.ref('online_users/' + encodedUser).remove(); // مسح الاسم فوراً عند تسجيل الخروج
+            }
             isSystemAdmin = false; 
             localStorage.clear();
             location.reload();
