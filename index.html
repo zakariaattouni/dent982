@@ -5,13 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>منصة دفعة أسنان دمشق 82</title>
     
-    <!-- وسوم تهيئة التطبيق كـ PWA والدعم على الهواتف -->
-    <link rel="manifest" href="manifest.json">
+    <!-- وسوم تهيئة التطبيق والدعم على الهواتف -->
     <meta name="theme-color" content="#1a56db">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="أسنان 82">
-    <link rel="apple-touch-icon" href="icon-192.png">
 
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
@@ -225,25 +223,19 @@
             </button>
         </div>
 
-        <!-- فقرة شخصية اليوم -->
+        <!-- فقرة شخصية اليوم (منظفة ومصفّرة بالكامل) -->
         <div class="featured-card" id="featuredCard">
             <div class="avatar-group"><img id="featuredImg" class="avatar-img" src="https://via.placeholder.com/150" alt="طبيب اليوم"></div>
             <div class="card-content">
                 <span class="card-tag">شخصية اليوم 🌟</span>
                 <h4 id="featuredName">الدكتور الزميل</h4>
-                <p id="featuredDesc">اضغط على رمز الترس (⚙️) في زاوية الهيدر لتحديث بيانات الزميل اليومية.</p>
+                <p id="featuredDesc">اضغط على رمز الترس (⚙️) في زاوية الهيدر لتحديث بيانات الزميل المحتفى به اليوم ونشر مسيرته العطرة.</p>
             </div>
         </div>
 
-        <!-- عرض جدار المحادثة -->
+        <!-- عرض جدار المحادثة (تم تنظيفه وحذف الرسالة التجريبية بالكامل) -->
         <div class="view-content" id="chatWall">
-            <div class="msg-wrapper recv-wrapper" id="msg_init">
-                <div class="msg-bubble recv">
-                    <span class="msg-user">د. أحمد زيدان</span>
-                    <div>يا جماعة الخير، من يتذكر رحلتنا إلى كسب عام 1981؟</div>
-                    <span class="msg-time">10:00 ص</span>
-                </div>
-            </div>
+            <!-- جدار نظيف فارغ تماماً بانتظام رسائل الأطباء من الفايربيس -->
         </div>
 
         <!-- عرض ألبوم الصور المشترك -->
@@ -309,11 +301,6 @@
 
         let currentUser = "طبيب زميل";
         let isSystemAdmin = false;
-
-        // تسجيل الـ Service Worker لتفعيل الـ PWA
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js').catch(err => console.log('SW registration failed:', err));
-        }
 
         window.onload = function() {
             if(localStorage.getItem('user_theme')) {
@@ -443,7 +430,6 @@
             }
         }
 
-        // تفريغ بطاقة شخصية اليوم بالكامل وإعادة ضبطها للافتراضي
         function clearFeaturedDoctor() {
             if(confirm("تصفير بيانات البطاقة؟")) {
                 localStorage.removeItem('featured_name'); localStorage.removeItem('featured_desc'); localStorage.removeItem('featured_img');
