@@ -47,10 +47,8 @@
         .online-dot-active { width: 6px; height: 6px; background-color: #10b981; border-radius: 50%; display: inline-block; }
                 
         .theme-selector { display: none; background: #1e293b; padding: 8px; justify-content: center; gap: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); flex-shrink: 0; }
-        .theme-dot { width: 22px; height: 22px; border-radius: 50%; cursor: pointer; border: 2px solid white; transition: transform 0.2s; }
-        .theme-dot:hover { transform: scale(1.15); }
+        .theme-dot { width: 22px; height: 22px; border-radius: 50%; cursor: pointer; border: 2px solid white; transition: transform 0.2s; }        .theme-dot:hover { transform: scale(1.15); }
         
-        /* تعديل الشريط الإعلاني للأخضر الغامق */
         .ticker-wrap { background-color: #065f46; color: #ffffff; font-size: 11px; font-weight: bold; padding: 6px 10px; overflow: hidden; white-space: nowrap; border-bottom: 2px solid #044632; flex-shrink: 0; }
         .ticker-content { display: inline-block; animation: ticker 20s linear infinite; padding-left: 100%; }
         @keyframes ticker { 0% { transform: translate3d(-100%, 0, 0); } 100% { transform: translate3d(100%, 0, 0); } }
@@ -74,6 +72,39 @@
         
         .input-bar { background: white; padding: 10px; border-top: 1px solid #e2e8f0; display: flex; flex-direction: column; gap: 5px; position: fixed; bottom: 0; left: 0; width: 100%; z-index: 1000; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); }
         .reply-preview { background: #eef2ff; padding: 4px 10px; border-radius: 16px; font-size: 11px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 3px; }
+        
+        /* ✅ تحسينات منطقة معاينة الصورة */
+        .image-preview-container { 
+            display: none; 
+            background: #f1f5f9; 
+            padding: 8px 10px; 
+            border-radius: 12px; 
+            margin-bottom: 5px;
+            border: 1px dashed #cbd5e1;
+        }
+        .image-preview-container.active { display: flex; align-items: center; gap: 8px; }
+        .image-preview-thumb { 
+            width: 50px; height: 50px; 
+            border-radius: 8px; 
+            object-fit: cover; 
+            border: 1px solid #e2e8f0;
+        }
+        .image-preview-info { 
+            flex: 1; 
+            font-size: 11px; 
+            color: #475569;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }        .image-preview-remove {
+            background: #ef4444; color: white; border: none;
+            width: 22px; height: 22px; border-radius: 50%;
+            font-size: 14px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+        }
+        .image-preview-remove:hover { background: #dc2626; }
+        
         .input-row { display: flex; align-items: center; gap: 6px; }
         .chat-input { flex: 1; padding: 8px 14px; border: 1px solid #cbd5e1; border-radius: 25px; font-size: 13px; background: #f8fafc; outline: none; }
         .icon-btn { background: none; border: none; font-size: 18px; cursor: pointer; padding: 4px; color: #1a56db; display: inline-flex; align-items: center; }
@@ -104,7 +135,6 @@
     </style>
 </head>
 <body>
-
 <div class="login-wrapper" id="loginScreen">
     <h2>دفعة أسنان دمشق 82</h2>
     <div class="desc">المنصة الاجتماعية لزملاء الحرف والعمر</div>
@@ -115,8 +145,7 @@
     
     <div id="adminForm" class="sub-form">
         <h3>دخول الإدارة</h3>
-        <input type="password" id="adminPass" class="form-control" placeholder="كلمة السر">
-        <div id="adminError" class="error-text">كلمة السر غير صحيحة</div>
+        <input type="password" id="adminPass" class="form-control" placeholder="كلمة السر">        <div id="adminError" class="error-text">كلمة السر غير صحيحة</div>
         <button type="button" class="btn-blue" style="background-color:#057a55;" id="btn-verify-admin">دخول</button>
     </div>
     
@@ -136,7 +165,6 @@
         <button type="button" class="btn-blue" style="background-color:#057a55;" id="btn-submit-join">إرسال الطلب للاعتماد</button>
     </div>
 </div>
-
 <div class="app-container" id="appScreen">
     <div class="app-header">
         <button type="button" class="header-btn" id="btn-logout">خروج</button>
@@ -166,9 +194,16 @@
     
     <div class="input-bar" id="inputBarContainer">
         <div id="replyPreviewDiv" class="reply-preview" style="display:none;">
-            <span>🔁 الرد على: <strong id="replyTargetName"></strong></span>
-            <button type="button" class="icon-btn" id="btn-cancel-reply" style="font-size:12px;">✖ إلغاء</button>
+            <span>🔁 الرد على: <strong id="replyTargetName"></strong></span>            <button type="button" class="icon-btn" id="btn-cancel-reply" style="font-size:12px;">✖ إلغاء</button>
         </div>
+        
+        <!-- ✅ منطقة معاينة الصورة المختارة -->
+        <div id="imagePreviewContainer" class="image-preview-container">
+            <img id="imagePreviewThumb" class="image-preview-thumb" src="" alt="معاينة">
+            <div class="image-preview-info" id="imagePreviewName">اسم الملف</div>
+            <button type="button" class="image-preview-remove" id="btn-remove-image" title="إزالة الصورة">×</button>
+        </div>
+        
         <div class="input-row">
             <input type="text" id="messageInput" class="chat-input" placeholder="اكتب رسالتك هنا...">
             <button type="button" class="icon-btn" id="btn-upload-img" title="إرفاق صورة">📷</button>
@@ -208,17 +243,16 @@
             <h3>🖼️ إضافة صورة للألبوم</h3>
             <input type="text" id="newPhotoUrl" class="form-control" placeholder="رابط الصورة">
             <input type="text" id="newPhotoDesc" class="form-control" placeholder="وصف الصورة">
-            <button type="button" class="btn-blue" style="background-color:#10b981;" id="btn-add-photo">نشر في الألبوم</button>
-        </div>
+            <button type="button" class="btn-blue" style="background-color:#10b981;" id="btn-add-photo">نشر في الألبوم</button>        </div>
     </div>
 </div>
-
 <script>
     let database = null;
     let currentUser = "طبيب زميل";
     let isSystemAdmin = false;
     let currentReplyTo = null;
     let pendingImageBase64 = null;
+    let pendingImageName = null;
     let allMessages = {};
     let allPhotos = {};
     
@@ -237,7 +271,7 @@
             database = firebase.database();
         }
     } catch(e) { console.warn("Firebase init skipped or failed:", e.message); }
-
+    
     window.toggleForm = function(formId) {
         document.querySelectorAll('.sub-form').forEach(f => f.style.display = 'none');
         if(formId && formId !== 'none') {
@@ -245,46 +279,46 @@
             if(el) el.style.display = 'block';
         }
     };
-
     window.changeTheme = function(theme) {
         document.body.className = '';
         if(theme !== 'default') document.body.classList.add('theme-' + theme);
         localStorage.setItem('user_theme', theme || 'default');
     };
-
     window.toggleThemeBar = function() {
         let tb = document.getElementById('themeSelector');
         tb.style.display = (tb.style.display === 'flex') ? 'none' : 'flex';
     };
-
     window.toggleAlbum = function() {
         let modal = document.getElementById('albumModal');
         modal.style.display = (modal.style.display === 'flex') ? 'none' : 'flex';
         if(modal.style.display === 'flex') renderAlbum();
-    };
-
-    window.openAdminPanel = function() {
+    };    window.openAdminPanel = function() {
         if(!isSystemAdmin && currentUser !== 'الإدارة') return alert('⚠️ هذه اللوحة مخصصة للإدارة فقط');
         document.getElementById('adminPanel').style.display = 'flex';
     };
     window.closeAdminPanel = function() { document.getElementById('adminPanel').style.display = 'none'; };
-
     window.cancelReply = function() {
         currentReplyTo = null;
         document.getElementById('replyPreviewDiv').style.display = 'none';
     };
-
     window.toggleCollapse = function(boxId) {
         let el = document.getElementById(boxId);
         if(el) el.style.display = (el.style.display === 'none') ? 'block' : 'none';
     };
-
     window.logout = function() {
         if(database && currentUser) database.ref('online_users/' + btoa(encodeURIComponent(currentUser))).remove();
         localStorage.clear();
         location.reload();
     };
-
+    
+    // ✅ دالة جديدة لإزالة الصورة المختارة
+    window.removeSelectedImage = function() {
+        pendingImageBase64 = null;
+        pendingImageName = null;
+        document.getElementById('imagePreviewContainer').classList.remove('active');
+        document.getElementById('imageUpload').value = '';
+    };
+    
     document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('btn-admin').onclick = () => toggleForm('adminForm');
         document.getElementById('btn-doctor').onclick = () => toggleForm('doctorForm');
@@ -303,8 +337,18 @@
         document.getElementById('btn-update-ticker').onclick = updateTicker;
         document.getElementById('btn-add-photo').onclick = addPhotoToAlbum;
         document.getElementById('btn-send').onclick = sendMessage;
-        document.getElementById('btn-upload-img').onclick = () => document.getElementById('imageUpload').click();
+        
+        // ✅ تحسين زر رفع الصورة للتوافق مع الجوال
+        document.getElementById('btn-upload-img').onclick = (e) => {
+            e.preventDefault();
+            const fileInput = document.getElementById('imageUpload');            // إعادة تعيين القيمة للسماح بإعادة اختيار نفس الملف
+            fileInput.value = '';
+            fileInput.click();
+        };
+        
         document.getElementById('btn-cancel-reply').onclick = cancelReply;
+        document.getElementById('btn-remove-image').onclick = removeSelectedImage;
+        
         document.getElementById('messageInput').addEventListener('keypress', (e) => { if(e.key === 'Enter') sendMessage(); });
         document.getElementById('imageUpload').onchange = handleImageUpload;
         document.getElementById('theme-default').onclick = () => changeTheme('default');
@@ -322,7 +366,7 @@
             bypassLogin();
         }
     });
-
+    
     function verifyAdmin() {
         let pass = document.getElementById('adminPass').value;
         if(pass === 'salem1959') {
@@ -338,7 +382,7 @@
             document.getElementById('adminError').style.display = 'block';
         }
     }
-
+    
     function verifyDoctorLogin() {
         let name = document.getElementById('docName').value.trim();
         let pass = document.getElementById('docPass').value.trim();
@@ -346,8 +390,7 @@
         if(!database) { alert("⚠️ فشل الاتصال بالخادم، يرجى المحاولة لاحقاً"); return; }
         database.ref('verified_doctors/' + btoa(encodeURIComponent(name))).once('value', snap => {
             if(snap.val() && snap.val().password === pass) {
-                currentUser = name;
-                localStorage.setItem('activeUser', currentUser);
+                currentUser = name;                localStorage.setItem('activeUser', currentUser);
                 localStorage.setItem('activeRole', 'doctor');
                 document.getElementById('doctorError').style.display = 'none';
                 bypassLogin();
@@ -356,7 +399,7 @@
             }
         });
     }
-
+    
     function requestJoin() {
         let name = document.getElementById('regName').value.trim();
         let phone = document.getElementById('regPhone').value.trim();
@@ -369,7 +412,7 @@
             toggleForm('none');
         });
     }
-
+    
     function bypassLogin() {
         document.getElementById('loginScreen').style.display = 'none';
         document.getElementById('appScreen').style.display = 'flex';
@@ -377,57 +420,91 @@
         setInterval(setUserOnlineHeartbeat, 60000);
         renderAllMessages();
     }
-
+    
     function sendMessage() {
         let text = document.getElementById('messageInput').value.trim();
         let image = pendingImageBase64;
         if(!text && !image) return;
         if(!database) { alert("⚠️ فشل الاتصال"); return; }
-        let message = { user: currentUser, text: text || "", image: image || null, timestamp: Date.now(), likes: 0, likedBy: [], replyTo: currentReplyTo ? { id: currentReplyTo.id, user: currentReplyTo.user, text: currentReplyTo.text.substring(0,60) } : null };
+        let message = { 
+            user: currentUser, 
+            text: text || "", 
+            image: image || null, 
+            timestamp: Date.now(), 
+            likes: 0, 
+            likedBy: [], 
+            replyTo: currentReplyTo ? { id: currentReplyTo.id, user: currentReplyTo.user, text: currentReplyTo.text.substring(0,60) } : null 
+        };
         database.ref('chat_messages').push(message).then(() => {
             document.getElementById('messageInput').value = '';
             pendingImageBase64 = null;
+            pendingImageName = null;
+            // ✅ إخفاء معاينة الصورة بعد الإرسال            document.getElementById('imagePreviewContainer').classList.remove('active');
+            document.getElementById('imageUpload').value = '';
             cancelReply();
         }).catch(err => alert("❌ خطأ في الإرسال: " + err));
     }
-
+    
+    // ✅ دالة معالجة رفع الصورة - محسّنة
     function handleImageUpload(e) {
         let file = e.target.files[0];
         if(file && file.type.startsWith('image/')) {
-            if(file.size > 2 * 1024 * 1024) { alert("⚠️ الصورة كبيرة جداً (حد أقصى 2 ميجا)"); return; }
+            if(file.size > 2 * 1024 * 1024) { 
+                alert("⚠️ الصورة كبيرة جداً (حد أقصى 2 ميجا)"); 
+                e.target.value = '';
+                return; 
+            }
             let reader = new FileReader();
             reader.onload = (ev) => {
                 pendingImageBase64 = ev.target.result;
+                pendingImageName = file.name;
+                
+                // ✅ عرض معاينة الصورة مع اسم الملف
+                const previewContainer = document.getElementById('imagePreviewContainer');
+                const previewThumb = document.getElementById('imagePreviewThumb');
+                const previewName = document.getElementById('imagePreviewName');
+                
+                previewThumb.src = pendingImageBase64;
+                previewName.textContent = pendingImageName.length > 20 ? pendingImageName.substring(0, 17) + '...' : pendingImageName;
+                previewContainer.classList.add('active');
+                
+                // إشعار مؤقت
                 let notify = document.createElement('div');
-                notify.innerText = "✅ تم اختيار الصورة، اضغط إرسال";
-                notify.style.cssText = "position:fixed; bottom:90px; left:20px; right:20px; background:#1a56db; color:white; padding:6px 12px; border-radius:16px; text-align:center; font-size:11px; z-index:999;";
+                notify.innerText = "✅ جاهزة للإرسال";
+                notify.style.cssText = "position:fixed; bottom:90px; left:20px; right:20px; background:#10b981; color:white; padding:6px 12px; border-radius:16px; text-align:center; font-size:11px; z-index:999; animation: fadeOut 2s forwards;";
                 document.body.appendChild(notify);
-                setTimeout(() => notify.remove(), 2000);
+                setTimeout(() => { if(notify.parentNode) notify.remove(); }, 2000);
+            };
+            reader.onerror = () => {
+                alert("❌ خطأ في قراءة الصورة");
+                e.target.value = '';
             };
             reader.readAsDataURL(file);
+        } else if(file) {
+            alert("⚠️ يرجى اختيار ملف صورة صالح");
+            e.target.value = '';
         }
-        e.target.value = '';
+        // ✅ لا نعيد تعيين القيمة هنا، بل نتركها للمستخدم إذا أراد التغيير
     }
-
+    
     function likeMessage(msgId, currentLikes, likedByArr, event) {
-        if(event) event.stopPropagation();
-        if(likedByArr.includes(currentUser)) return;
+        if(event) event.stopPropagation();        if(likedByArr.includes(currentUser)) return;
         likedByArr.push(currentUser);
         database.ref(`chat_messages/${msgId}`).update({ likes: currentLikes + 1, likedBy: likedByArr });
     }
-
+    
     function replyToMessage(msgId, userName, msgText) {
         currentReplyTo = { id: msgId, user: userName, text: msgText };
         document.getElementById('replyTargetName').innerHTML = `${userName}: ${msgText.substring(0,40)}...`;
         document.getElementById('replyPreviewDiv').style.display = 'flex';
         document.getElementById('messageInput').focus();
     }
-
+    
     function deleteMessage(msgId) {
         if(!isSystemAdmin) return;
         if(confirm('⚠️ هل أنت متأكد من الحذف؟')) database.ref(`chat_messages/${msgId}`).remove();
     }
-
+    
     function renderAllMessages() {
         let container = document.getElementById('messagesContainer');
         if(!container) return;
@@ -440,31 +517,30 @@
             div.className = 'message-card';
             let replyInfo = parent.replyTo ? `<div class="reply-indicator">↩️ رد على <strong>${escapeHtml(parent.replyTo.user)}</strong>: ${parent.replyTo.text}</div>` : '';
             let time = new Date(parent.timestamp).toLocaleTimeString('ar-SY', {hour:'2-digit', minute:'2-digit'});
-            let imgHtml = parent.image ? `<img src="${parent.image}" class="msg-image" onclick="window.open(this.src)" onerror="this.style.display='none'">` : '';
+            let imgHtml = parent.image ? `<img src="${parent.image}" class="msg-image" onclick="event.stopPropagation(); window.open(this.src)" onerror="this.style.display='none'">` : '';
             div.innerHTML = `${replyInfo}<div class="msg-header"><div class="msg-name">👤 ${escapeHtml(parent.user)}</div><div class="msg-time">${time}</div></div><div class="msg-text">${escapeHtml(parent.text).replace(/\n/g,'<br>')}</div>${imgHtml}
-            <div class="msg-actions"><button type="button" class="action-btn" onclick="likeMessage('${parent.key}',${parent.likes||0},${JSON.stringify(parent.likedBy||[])},event)">👍 ${parent.likes||0}</button><button type="button" class="action-btn" onclick="replyToMessage('${parent.key}','${escapeHtml(parent.user)}','${escapeHtml(parent.text).substring(0,50)}')">💬 رد</button>${isSystemAdmin ? `<button type="button" class="action-btn delete-btn" onclick="deleteMessage('${parent.key}')">🗑️ حذف</button>`:''}</div><div class="replies-box" id="replies-${parent.key}"></div>`;
+            <div class="msg-actions"><button type="button" class="action-btn" onclick="event.stopPropagation(); likeMessage('${parent.key}',${parent.likes||0},${JSON.stringify(parent.likedBy||[])},event)">👍 ${parent.likes||0}</button><button type="button" class="action-btn" onclick="event.stopPropagation(); replyToMessage('${parent.key}','${escapeHtml(parent.user)}','${escapeHtml(parent.text).substring(0,50)}')">💬 رد</button>${isSystemAdmin ? `<button type="button" class="action-btn delete-btn" onclick="event.stopPropagation(); deleteMessage('${parent.key}')">🗑️ حذف</button>`:''}</div><div class="replies-box" id="replies-${parent.key}"></div>`;
             container.appendChild(div);
             let box = div.querySelector('.replies-box');
             replies.filter(r => r.replyTo?.id === parent.key).forEach(reply => {
                 let rDiv = document.createElement('div'); rDiv.className = 'reply-card';
                 let rTime = new Date(reply.timestamp).toLocaleTimeString('ar-SY', {hour:'2-digit', minute:'2-digit'});
-                let rImg = reply.image ? `<img src="${reply.image}" class="msg-image" style="max-height:100px;" onclick="window.open(this.src)" onerror="this.style.display='none'">` : '';
-                rDiv.innerHTML = `<div class="msg-header"><span>👤 ${escapeHtml(reply.user)}</span><span>${rTime}</span></div><div class="msg-text">${escapeHtml(reply.text).replace(/\n/g,'<br>')}</div>${rImg}<div class="msg-actions"><button type="button" class="action-btn" onclick="likeMessage('${reply.key}',${reply.likes||0},${JSON.stringify(reply.likedBy||[])},event)">👍 ${reply.likes||0}</button>${isSystemAdmin ? `<button type="button" class="action-btn delete-btn" onclick="deleteMessage('${reply.key}')">🗑️</button>`:''}</div>`;
+                let rImg = reply.image ? `<img src="${reply.image}" class="msg-image" style="max-height:100px;" onclick="event.stopPropagation(); window.open(this.src)" onerror="this.style.display='none'">` : '';
+                rDiv.innerHTML = `<div class="msg-header"><span>👤 ${escapeHtml(reply.user)}</span><span>${rTime}</span></div><div class="msg-text">${escapeHtml(reply.text).replace(/\n/g,'<br>')}</div>${rImg}<div class="msg-actions"><button type="button" class="action-btn" onclick="event.stopPropagation(); likeMessage('${reply.key}',${reply.likes||0},${JSON.stringify(reply.likedBy||[])},event)">👍 ${reply.likes||0}</button>${isSystemAdmin ? `<button type="button" class="action-btn delete-btn" onclick="event.stopPropagation(); deleteMessage('${reply.key}')">🗑️</button>`:''}</div>`;
                 box.appendChild(rDiv);
             });
         });
         document.querySelector('.chat-area').scrollTop = document.querySelector('.chat-area').scrollHeight;
     }
-
+    
     function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>"']/g, m => ({'&':'&','<':'<','>':'>','"':'"',"'":"'"})[m]); }
-
+    
     function setupChatListeners() {
         if(!database) return;
-        database.ref('chat_messages').on('child_added', s => { allMessages[s.key] = s.val(); renderAllMessages(); });
-        database.ref('chat_messages').on('child_changed', s => { allMessages[s.key] = s.val(); renderAllMessages(); });
+        database.ref('chat_messages').on('child_added', s => { allMessages[s.key] = s.val(); renderAllMessages(); });        database.ref('chat_messages').on('child_changed', s => { allMessages[s.key] = s.val(); renderAllMessages(); });
         database.ref('chat_messages').on('child_removed', s => { delete allMessages[s.key]; renderAllMessages(); });
     }
-
+    
     function renderAlbum() {
         let grid = document.getElementById('albumGrid');
         grid.innerHTML = '';
@@ -472,12 +548,13 @@
         if(sorted.length === 0) { grid.innerHTML = '<p style="text-align:center; color:#64748b; grid-column: span 2; padding:20px;">لا توجد صور بعد 🌹</p>'; return; }
         sorted.forEach(p => {
             let div = document.createElement('div'); div.className = 'photo-card';
-            div.innerHTML = `<img src="${p.url}" onclick="window.open(this.src)" onerror="this.src='https://via.placeholder.com/150?text=صورة'"><div class="photo-desc">${escapeHtml(p.desc)}</div>`;
+            div.innerHTML = `<img src="${p.url}" onclick="event.stopPropagation(); window.open(this.src)" onerror="this.src='https://via.placeholder.com/150?text=صورة'"><div class="photo-desc">${escapeHtml(p.desc)}</div>`;
             grid.appendChild(div);
         });
     }
+    
     function setupAlbumListeners() { if(database) database.ref('photo_album').on('value', s => { allPhotos = s.val() || {}; renderAlbum(); }); }
-
+    
     function listenToJoinRequests() {
         if(!database) return;
         database.ref('join_requests').on('value', snap => {
@@ -491,8 +568,10 @@
             });
         });
     }
+    
     function approveDoctor(id,n,p) { if(database) database.ref('verified_doctors/'+btoa(encodeURIComponent(n))).set({password:p}).then(()=>{database.ref('join_requests/'+id).remove(); alert(`✅ تم اعتماد د. ${n}`);}); }
     function rejectDoctor(id) { if(confirm('رفض؟') && database) database.ref('join_requests/'+id).remove(); }
+    
     function listenToApprovedDoctors() {
         if(!database) return;
         database.ref('verified_doctors').on('value', snap => {
@@ -501,12 +580,13 @@
             Object.keys(d).forEach(e=>{c.innerHTML+=`<div class="request-item"><div><strong>د. ${escapeHtml(decodeURIComponent(atob(e)))}</strong> <span style="color:#10b981;">✓</span></div><button type="button" class="btn-action btn-reject" onclick="removeDoctor('${e}')">سحب</button></div>`;});
         });
     }
+    
     function removeDoctor(e) { if(confirm('سحب الاعتماد؟') && database) database.ref('verified_doctors/'+e).remove(); }
     function updateTicker() { let v=document.getElementById('editTicker').value.trim(); if(v && database) database.ref('ticker_saved').set(v).then(()=>{alert('✅ تم التحديث');closeAdminPanel();}); }
     function addPhotoToAlbum() { let u=document.getElementById('newPhotoUrl').value.trim(), d=document.getElementById('newPhotoDesc').value.trim(); if(u && d && database) database.ref('photo_album').push({url:u,desc:d,timestamp:Date.now()}).then(()=>{alert('✅ تمت الإضافة');document.getElementById('newPhotoUrl').value='';document.getElementById('newPhotoDesc').value='';}); }
-
+    
     function setUserOnlineHeartbeat() { if(database && currentUser) database.ref('online_users/'+btoa(encodeURIComponent(currentUser))).set({name:currentUser,last_seen:Date.now()}); }
-    function listenToOnlineUsers() {
+        function listenToOnlineUsers() {
         if(!database) return;
         database.ref('online_users').on('value', snap => {
             let c=document.getElementById('onlineUsersContainer'); if(!c) return; c.innerHTML='';
@@ -515,7 +595,7 @@
             if(cnt===0) c.innerHTML='<span style="font-size:10px; color:#94a3b8;">لا يوجد أحد حالياً 🌙</span>';
         });
     }
-
+    
     if(database) {
         setupChatListeners(); setupAlbumListeners();
         database.ref('ticker_saved').on('value', s => { if(s.val()) document.getElementById('tickerText').innerText = s.val(); });
