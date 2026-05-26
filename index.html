@@ -131,14 +131,12 @@ readerContainer.appendChild(div);
 }
 
 function cleanTextForSpeech(text) {
-// 1. إزالة الإيموجي والرموز التعبيرية بجميع أنواعها
-let cleaned = text.replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F700}-\u{1F77F}\u{1F780}-\u{1F7FF}\u{1F900}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F1E6}-\u{1F1FF}]/gu, '');
+// هذه الطريقة تحتفظ فقط بـ: الحروف العربية (بما فيها التشكيل)، الحروف الإنجليزية، الأرقام، والمسافات وعلامات الترقيم الشائعة.
+// أي إيموجي أو رمز غريب خارج هذه القائمة سيتم مسحه فوراً.
+let cleaned = text.replace(/[^\u0600-\u06FF\u0750-\u077F\uFB50-\uFDFF\uFE70-\uFEFFa-zA-Z0-9\s\.\,\!\؟\?\-\:\(\)]/g, '');
 
-// 2. إزالة الرموز الخاصة والأيقونات الشائعة وعلامات التشكيل الزائدة غير المرغوبة في القراءة الثابتة
-cleaned = cleaned.replace(/[⚡⭐✨💥🔥🎈🎉🎊🎁🎨🎬📷📌📍🔍🔎🔒🔓🛠️⚙️👣👤💬💭📜📄📊📈📉📢🔔🎵🎶]* /g, '');
-
-// 3. تنظيف المسافات الزائدة الناتجة عن الحذف
-return cleaned.trim();
+// تنظيف المسافات الزائدة الناتجة عن الحذف
+return cleaned.replace(/\s+/g, ' ').trim();
 }
 
 function toggleRead(){
@@ -161,11 +159,11 @@ lines.forEach(l=>l.classList.remove('activeLine'));
 lines[index].classList.add('activeLine');
 lines[index].scrollIntoView({behavior:'smooth',block:'center'});
 
-// تنظيف النص قبل إرساله للمحرك الصوتي
+// تنظيف النص بشكل صارم قبل إرساله للمحرك الصوتي
 const textToRead = cleanTextForSpeech(lines[index].innerText);
 
-// إذا كان السطر يحتوي على رموز فقط وأصبح فارغاً بعد التنظيف، ننتقل للسطر التالي فوراً
-if (!textToRead) {
+// إذا كان السطر فارغاً تماماً بعد الفلترة الصارمة، ننتقل للسطر التالي فوراً دون توقف
+if (!textToRead || textToRead.length === 0) {
 index++;
 if(reading) readNext();
 return;
