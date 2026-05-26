@@ -2,192 +2,313 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
 <title>ReadAid</title>
 
+<!-- إعدادات التثبيت والأيقونة PWA -->
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#1e88e5">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ReadAid">
 
 <style>
-body{
-margin:0;
-font-family:system-ui;
-background:#0b1220;
-color:#fff;
+:root {
+  --bg-main: #0b1220;
+  --bg-card: #1b2430;
+  --primary: #1e88e5;
+  --accent: #0d47a1;
 }
 
-header{
-padding:14px;
-text-align:center;
-background:#111827;
-font-size:20px;
-font-weight:900;
+body {
+  margin: 0;
+  padding: 0;
+  font-family: system-ui, -apple-system, sans-serif;
+  background: var(--bg-main);
+  color: #fff;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
-textarea{
-width:100%;
-height:160px;
-padding:12px;
-font-size:18px;
-border:none;
-outline:none;
-background:#1b2430;
-color:#fff;
+header {
+  padding: 16px;
+  text-align: center;
+  background: #111827;
+  font-size: 22px;
+  font-weight: 900;
+  box-shadow: 0 2px 10px rgba(0,0,0,.3);
 }
 
-#out{
-padding:14px;
-font-size:26px;
-line-height:2;
-font-weight:800;
+.container {
+  padding: 15px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-bottom: 90px; /* مساحة لزر الإيقاف السفلي */
 }
 
-.line{
-padding:12px;
-margin-bottom:10px;
-background:#1b2430;
-border-radius:12px;
+textarea {
+  width: 100%;
+  height: 140px;
+  padding: 15px;
+  font-size: 18px;
+  border: 2px solid #2a3746;
+  border-radius: 14px;
+  outline: none;
+  background: var(--bg-card);
+  color: #fff;
+  box-sizing: border-box;
+  resize: none;
+  transition: border-color 0.3s;
 }
 
-button{
-width:100%;
-padding:16px;
-font-size:18px;
-font-weight:900;
-border:none;
-background:#1e88e5;
-color:#fff;
+textarea:focus {
+  border-color: var(--primary);
 }
 
-#fab{
-position:fixed;
-bottom:20px;
-left:20px;
-width:70px;
-height:70px;
-border-radius:50%;
-background:#d32f2f;
-display:flex;
-align-items:center;
-justify-content:center;
-font-size:28px;
-color:#fff;
-box-shadow:0 4px 12px rgba(0,0,0,.4);
-user-select:none;
+.btn-group {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
 }
 
-#fab:active{
-transform:scale(0.95);
+button {
+  padding: 16px;
+  font-size: 18px;
+  font-weight: 900;
+  border: none;
+  border-radius: 14px;
+  background: var(--primary);
+  color: #fff;
+  cursor: pointer;
+  transition: transform 0.1s, background 0.2s;
+}
+
+button:active {
+  transform: scale(0.97);
+}
+
+button.secondary {
+  background: #2e7d32;
+}
+
+#out {
+  margin-top: 10px;
+}
+
+/* الأسطر البرمجية البصرية المحسنة لكبار السن */
+.line {
+  padding: 18px;
+  margin-bottom: 12px;
+  background: var(--bg-card);
+  border-radius: 14px;
+  font-size: 28px;
+  line-height: 1.8;
+  font-weight: 700;
+  transition: all 0.3s ease;
+  border-right: 5px solid transparent;
+}
+
+/* السطر النشط المميز أثناء القراءة */
+.line.activeLine {
+  background: var(--accent);
+  border-right-color: var(--primary);
+  transform: scale(1.02);
+  box-shadow: 0 4px 15px rgba(0,0,0,.4);
+}
+
+/* زر الإيقاف العائم الثابت أسفل الشاشة بشكل مريح */
+#fab {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 85%;
+  max-width: 400px;
+  padding: 16px;
+  border-radius: 16px;
+  background: #d32f2f;
+  display: none; /* يظهر فقط عند البدء بالقراءة */
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  font-weight: 900;
+  color: #fff;
+  box-shadow: 0 4px 20px rgba(0,0,0,.5);
+  cursor: pointer;
+  user-select: none;
+  text-align: center;
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from { bottom: -70px; opacity: 0; }
+  to { bottom: 20px; opacity: 1; }
 }
 </style>
 </head>
 
 <body>
 
-<header>ReadAid — قارئ بسيط لكبار السن</header>
+<header>ReadAid — مُعين القراءة البصرية والصوتية</header>
 
-<textarea id="input" placeholder="الصق النص أو سيتم استقباله من المشاركة..."></textarea>
+<div class="container">
+  <textarea id="input" placeholder="الصق النص هنا أو سيتم استقباله تلقائياً عند مشاركته مع التطبيق..."></textarea>
+  
+  <div class="btn-group">
+    <button onclick="prepare()">🛠️ معالجة وتجهيز</button>
+    <button class="secondary" onclick="readAll()">🔊 بدء القراءة</button>
+  </div>
 
-<button onclick="prepare()">تحويل النص</button>
-<button onclick="readAll()">قراءة كاملة</button>
+  <div id="out"></div>
+</div>
 
-<div id="out"></div>
-
-<div id="fab" onclick="stop()">⏹</div>
+<div id="fab" onclick="stop()">⏹️ إيقاف القراءة الصوتية</div>
 
 <script>
+// تسجيل السيرفس وركر داخلياً لضمان ميزة الـ PWA والتثبيت
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW registration failed:', err));
+  });
+}
 
 let reading = false;
-let index = 0;
+let currentIndex = 0;
+let linesElements = [];
 
-/* 🔥 تنظيف قوي */
-function clean(text){
-return text
-.replace(/https?:\/\/\S+/g,'')
-.replace(/[\p{Extended_Pictographic}]/gu,'')
-.replace(/[\u200B-\u200F\u202A-\u202E\u2060-\u206F]/g,'')
-.replace(/[^a-zA-Z0-9\u0600-\u06FF\s]/g,'')
-.replace(/\s+/g,' ')
-.trim();
+/* ✨ الفلتر النقي: يحذف الإيموجي والروابط تماماً مع الحفاظ على التشكيل وبنية الجملة الصوتية */
+function cleanTextForSpeech(text) {
+  return text
+    .replace(/https?:\/\/\S+/g, '') // حذف الروابط
+    .replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F900}-\u{1F9FF}\u{1F1E6}-\u{1F1FF}]/gu, '') // حذف جميع الإيموجيز بدقة
+    .replace(/[^\u0600-\u06FF\sA-Za-z0-9\.,!؟\?]/g, '') // تنظيف الرموز الغريبة والزخارف مع الحفاظ على الحروف العربية، التشكيل، وعلامات الترقيم الأساسية
+    .replace(/\s+/g, ' ') // إزالة المسافات الزائدة
+    .trim();
 }
 
-/* تقسيم بسيط */
-function split(text){
-return clean(text)
-.split(/[\n\.!\?؟،]+/)
-.map(s=>s.trim())
-.filter(s=>s.length>2);
+/* تقسيم النص بناءً على نهايات الجمل المنطقية لراحة النفس أثناء القراءة */
+function splitIntoSentences(text) {
+  if(!text.trim()) return [];
+  // التقسيم عبر السطور أو النقط أو علامات الاستفهام والتعجب والفاصلة العربية
+  return text
+    .split(/[\n\.!\?؟،]+/)
+    .map(s => s.trim())
+    .filter(s => s.length > 1);
 }
 
-/* تجهيز العرض */
-function prepare(){
-const parts = split(document.getElementById("input").value);
+/* تجهيز وتقسيم العرض البصري */
+function prepare() {
+  const rawText = document.getElementById("input").value;
+  const sentences = splitIntoSentences(rawText);
+  const outContainer = document.getElementById("out");
+  
+  outContainer.innerHTML = "";
+  stop(); // إيقاف أي قراءة سابقة
 
-const out = document.getElementById("out");
-out.innerHTML = "";
+  if(sentences.length === 0) {
+    outContainer.innerHTML = "<p style='text-align:center; color:#aaa; font-size:18px;'>الرجاء إدخال نص أولاً</p>";
+    return;
+  }
 
-parts.forEach(p=>{
-const div = document.createElement("div");
-div.className = "line";
-div.innerText = p;
-out.appendChild(div);
+  sentences.forEach((sentence, idx) => {
+    const div = document.createElement("div");
+    div.className = "line";
+    div.innerText = sentence;
+    div.dataset.index = idx;
+    // ميزة إضافية: الضغط المباشر على السطر يبدأ القراءة منه
+    div.onclick = () => {
+      if(reading) stop();
+      currentIndex = idx;
+      startSpeaking();
+    };
+    outContainer.appendChild(div);
+  });
+
+  linesElements = document.querySelectorAll(".line");
+}
+
+/* بدء تشغيل القراءة المتسلسلة */
+function readAll() {
+  if (!linesElements.length) prepare();
+  if (!linesElements.length) return;
+  
+  stop();
+  currentIndex = 0;
+  startSpeaking();
+}
+
+function startSpeaking() {
+  if (currentIndex >= linesElements.length) {
+    stop();
+    return;
+  }
+
+  reading = true;
+  document.getElementById("fab").style.display = "flex"; // إظهار زر الإيقاف
+
+  // إزالة التميز من السطور السابقة وإضافته للسطر الحالي
+  linesElements.forEach(el => el.classList.remove("activeLine"));
+  const currentLine = linesElements[currentIndex];
+  currentLine.classList.add("activeLine");
+  
+  // تمرير سلس وذكي لمنتصف الشاشة تماماً لراحة عين المسن
+  currentLine.scrollIntoView({ behavior: "smooth", block: "center" });
+
+  // تنظيف السطر الحالي قبل إرساله للمحرك الصوتي
+  let cleanSpeech = cleanTextForSpeech(currentLine.innerText);
+
+  // إذا فرغ السطر بعد التنظيف انتقل للتالي مباشرة
+  if(!cleanSpeech) {
+    currentIndex++;
+    startSpeaking();
+    return;
+  }
+
+  const utterance = new SpeechSynthesisUtterance(cleanSpeech);
+  utterance.lang = "ar-SA";
+  utterance.rate = 0.82; // سرعة هادئة وموزونة جداً لكبار السن
+
+  utterance.onend = () => {
+    if (reading) {
+      currentIndex++;
+      startSpeaking();
+    }
+  };
+
+  utterance.onerror = () => {
+    if (reading) {
+      currentIndex++;
+      startSpeaking();
+    }
+  };
+
+  speechSynthesis.speak(utterance);
+}
+
+/* إيقاف فوري وتنظيف الحالة */
+function stop() {
+  reading = false;
+  speechSynthesis.cancel();
+  document.getElementById("fab").style.display = "none";
+  if(linesElements.length) {
+    linesElements.forEach(el => el.classList.remove("activeLine"));
+  }
+}
+
+/* استقبال المحتوى المشترك من التطبيقات الأخرى */
+window.addEventListener('DOMContentLoaded', () => {
+  const params = new URLSearchParams(location.search);
+  const sharedText = params.get("text") || params.get("title");
+  if (sharedText) {
+    document.getElementById("input").value = decodeURIComponent(sharedText);
+    prepare();
+    // بدء القراءة تلقائياً بعد ثانية واحدة من الاستقبال لراحة المستخدم
+    setTimeout(readAll, 1000);
+  }
 });
-}
-
-/* قراءة كاملة */
-function readAll(){
-
-const lines = document.querySelectorAll(".line");
-if(!lines.length) return;
-
-reading = true;
-index = 0;
-
-function speak(){
-
-if(!reading) return;
-
-if(index >= lines.length){
-reading = false;
-return;
-}
-
-lines[index].scrollIntoView({behavior:"smooth",block:"center"});
-
-let text = clean(lines[index].innerText);
-
-const u = new SpeechSynthesisUtterance(text);
-u.lang = "ar-SA";
-u.rate = 0.85;
-
-u.onend = ()=>{
-index++;
-speak();
-};
-
-speechSynthesis.cancel();
-speechSynthesis.speak(u);
-}
-
-speak();
-}
-
-/* إيقاف فوري */
-function stop(){
-reading = false;
-speechSynthesis.cancel();
-}
-
-/* استقبال المشاركة من أي تطبيق */
-window.onload = () => {
-const params = new URLSearchParams(location.search);
-const shared = params.get("text");
-if(shared){
-document.getElementById("input").value = decodeURIComponent(shared);
-prepare();
-}
-};
-
 </script>
 
 </body>
