@@ -3,126 +3,125 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-<title>ReadAid - تنظيف تام لكل الرموز</title>
+<title>ReadAid — قارئ ملزم بالحروف العربية والإنكليزية فقط</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#1e88e5">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="ReadAid">
 <style>
-:root {
-  --bg-main: #0b1220;
-  --bg-card: #1b2430;
-  --primary: #1e88e5;
-  --accent: #0d47a1;
-}
-body {
-  margin: 0;
-  padding: 0;
-  font-family: system-ui, -apple-system, sans-serif;
-  background: var(--bg-main);
-  color: #fff;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-}
-header {
-  padding: 16px;
-  text-align: center;
-  background: #111827;
-  font-size: 22px;
-  font-weight: 900;
-  box-shadow: 0 2px 10px rgba(0,0,0,.3);
-}
-.container {
-  padding: 15px;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-  margin-bottom: 90px;
-}
-textarea {
-  width: 100%;
-  height: 140px;
-  padding: 15px;
-  font-size: 18px;
-  border: 2px solid #2a3746;
-  border-radius: 14px;
-  outline: none;
-  background: var(--bg-card);
-  color: #fff;
-  box-sizing: border-box;
-  resize: none;
-}
-textarea:focus {
-  border-color: var(--primary);
-}
-.btn-group {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-}
-button {
-  padding: 16px;
-  font-size: 18px;
-  font-weight: 900;
-  border: none;
-  border-radius: 14px;
-  background: var(--primary);
-  color: #fff;
-  cursor: pointer;
-  transition: transform 0.1s;
-}
-button:active { transform: scale(0.97); }
-button.secondary { background: #2e7d32; }
-.line {
-  padding: 18px;
-  margin-bottom: 12px;
-  background: var(--bg-card);
-  border-radius: 14px;
-  font-size: 28px;
-  line-height: 1.8;
-  font-weight: 700;
-  border-right: 5px solid transparent;
-}
-.line.activeLine {
-  background: var(--accent);
-  border-right-color: var(--primary);
-  transform: scale(1.02);
-}
-#fab {
-  position: fixed;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 85%;
-  max-width: 400px;
-  padding: 16px;
-  border-radius: 16px;
-  background: #d32f2f;
-  display: none;
-  justify-content: center;
-  font-size: 20px;
-  font-weight: 900;
-  cursor: pointer;
-  text-align: center;
-}
+  :root {
+    --bg-main: #0b1220;
+    --bg-card: #1b2430;
+    --primary: #1e88e5;
+    --accent: #0d47a1;
+  }
+  body {
+    margin: 0;
+    padding: 0;
+    font-family: system-ui, -apple-system, sans-serif;
+    background: var(--bg-main);
+    color: #fff;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  header {
+    padding: 16px;
+    text-align: center;
+    background: #111827;
+    font-size: 22px;
+    font-weight: 900;
+    box-shadow: 0 2px 10px rgba(0,0,0,.3);
+  }
+  .container {
+    padding: 15px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-bottom: 90px;
+  }
+  textarea {
+    width: 100%;
+    height: 140px;
+    padding: 15px;
+    font-size: 18px;
+    border: 2px solid #2a3746;
+    border-radius: 14px;
+    outline: none;
+    background: var(--bg-card);
+    color: #fff;
+    box-sizing: border-box;
+    resize: none;
+  }
+  textarea:focus { border-color: var(--primary); }
+  .btn-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  button {
+    padding: 16px;
+    font-size: 18px;
+    font-weight: 900;
+    border: none;
+    border-radius: 14px;
+    background: var(--primary);
+    color: #fff;
+    cursor: pointer;
+    transition: transform 0.1s;
+  }
+  button:active { transform: scale(0.97); }
+  button.secondary { background: #2e7d32; }
+  .line {
+    padding: 18px;
+    margin-bottom: 12px;
+    background: var(--bg-card);
+    border-radius: 14px;
+    font-size: 28px;
+    line-height: 1.8;
+    font-weight: 700;
+    border-right: 5px solid transparent;
+  }
+  .line.activeLine {
+    background: var(--accent);
+    border-right-color: var(--primary);
+    transform: scale(1.02);
+  }
+  #fab {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 85%;
+    max-width: 400px;
+    padding: 16px;
+    border-radius: 16px;
+    background: #d32f2f;
+    display: none;
+    justify-content: center;
+    font-size: 20px;
+    font-weight: 900;
+    cursor: pointer;
+    text-align: center;
+  }
 </style>
 </head>
 <body>
-<header>ReadAid — حذف كل الرموز ❤️$🩸</header>
+<header>ReadAid — لا ينطق إلا الحروف العربية والإنجليزية والأرقام</header>
 <div class="container">
-  <textarea id="input" placeholder="الصق النص مع أي رموز مثل ❤️ $ 🩸 ★ ♫ → سيتم حذفها تلقائياً"></textarea>
+  <textarea id="input" placeholder="الصق نصاً فيه رموز مثل ❤️ 💰 $ 🩸 ★ → ستحذف تلقائياً"></textarea>
   <div class="btn-group">
-    <button onclick="prepare()">🛠️ معالجة وتجهيز</button>
-    <button class="secondary" onclick="readAll()">🔊 بدء القراءة</button>
+    <button onclick="prepare()">🛠️ تجهيز النص</button>
+    <button class="secondary" onclick="readAll()">🔊 ابدأ القراءة</button>
   </div>
   <div id="out"></div>
 </div>
-<div id="fab" onclick="stop()">⏹️ إيقاف القراءة</div>
+<div id="fab" onclick="stop()">⏹️ إيقاف</div>
 
 <script>
+// تسجيل Service Worker (لـ PWA)
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('./sw.js').catch(err => console.log(err));
@@ -133,27 +132,41 @@ let reading = false;
 let currentIndex = 0;
 let linesElements = [];
 
-// ========== الدالة الأسطورية التي تزيل كل الرموز بلا استثناء ==========
+/**
+ * دالة التنظيف الصارمة: تحتفظ فقط بالحروف العربية، الحروف الإنجليزية، الأرقام، وعلامات الترقيم الأساسية.
+ * كل ما عدى ذلك يتم حذفه بالكامل قبل النطق.
+ */
 function cleanTextForSpeech(text) {
   if (!text) return '';
-  // إزالة الروابط
+  
+  // أولاً: إزالة الروابط
   let cleaned = text.replace(/https?:\/\/\S+/gi, '').replace(/www\.\S+/gi, '');
   
-  // الاحتفاظ فقط بـ: الحروف العربية (مع التشكيل الكامل)، الحروف اللاتينية، الأرقام، المسافات، وعلامات الترقيم الأساسية
-  // كل ما عدا ذلك يُحذف (❤️ $ 🩸 ★ ♫ ✓ ➔ ← ... إلخ)
-  cleaned = cleaned.replace(/[^\u0600-\u06FF\u0610-\u061A\u064B-\u065F\u0670a-zA-Z0-9\s\.,!?؟،؛]/g, '');
+  // تعريف القيم المسموح بها (قائمة بيضاء واضحة):
+  // 1. الحروف العربية الكاملة + الهمزات والتشكيل + الألف المقصورة + التاء المربوطة
+  //    نطاق Unicode: 0600-06FF (العربية)، 0610-061A (تشكيل إضافي)، 064B-065F (تشكيل حركات)، 0670 (ألف خنجرية)
+  //    إضافة حروف فارسية/عربية إضافية: 06C0-06FF (اختياري)
+  //    نقوم بتغطية أوسع: \u0600-\u06FF يضم معظم الحروف العربية والعلامات.
+  // 2. الحروف الإنجليزية a-z A-Z
+  // 3. الأرقام 0-9
+  // 4. المسافات \s
+  // 5. علامات الترقيم الأساسية: . , ! ? ؟ ، ؛
+  const allowedChars = /[^\u0600-\u06FF\u0610-\u061A\u064B-\u065F\u0670a-zA-Z0-9\s\.,!?؟،؛]/g;
+  cleaned = cleaned.replace(allowedChars, '');
   
-  // إزالة المسافات الزائدة
+  // إزالة المسافات الزائدة (أكثر من مسافة واحدة)
   cleaned = cleaned.replace(/\s+/g, ' ').trim();
+  
   return cleaned;
 }
-// =================================================================
 
+// تقسيم النص إلى جمل منطقية
 function splitIntoSentences(text) {
   if (!text.trim()) return [];
   return text.split(/[\n\.!\?؟،]+/).map(s => s.trim()).filter(s => s.length > 1);
 }
 
+// تجهيز العرض البصري
 function prepare() {
   const rawText = document.getElementById("input").value;
   const sentences = splitIntoSentences(rawText);
@@ -167,7 +180,7 @@ function prepare() {
   sentences.forEach((sentence, idx) => {
     const div = document.createElement("div");
     div.className = "line";
-    div.innerText = sentence;
+    div.innerText = sentence;    // نعرض النص الأصلي (بالرموز) للوضوح
     div.dataset.index = idx;
     div.onclick = () => {
       if (reading) stop();
@@ -179,6 +192,7 @@ function prepare() {
   linesElements = document.querySelectorAll(".line");
 }
 
+// بدء القراءة من أول سطر
 function readAll() {
   if (!linesElements.length) prepare();
   if (!linesElements.length) return;
@@ -187,6 +201,7 @@ function readAll() {
   startSpeaking();
 }
 
+// القراءة بالتسلسل مع التنظيف الصارم
 function startSpeaking() {
   if (currentIndex >= linesElements.length) {
     stop();
@@ -199,27 +214,44 @@ function startSpeaking() {
   currentLine.classList.add("activeLine");
   currentLine.scrollIntoView({ behavior: "smooth", block: "center" });
   
+  // تطبيق التنظيف الصارم (لن يبقى إلا الحروف العربية والإنجليزية والأرقام وعلامات الترقيم الأساسية)
   let cleanSentence = cleanTextForSpeech(currentLine.innerText);
   if (!cleanSentence) {
+    // السطر فارغ بعد التنظيف → انتقل إلى الذي يليه
     currentIndex++;
     startSpeaking();
     return;
   }
+  
   const utterance = new SpeechSynthesisUtterance(cleanSentence);
-  utterance.lang = "ar-SA";
-  utterance.rate = 0.82;
-  utterance.onend = () => { if (reading) { currentIndex++; startSpeaking(); } };
-  utterance.onerror = () => { if (reading) { currentIndex++; startSpeaking(); } };
+  utterance.lang = "ar-SA";       // نطق عربي (يدعم الإنجليزية أيضاً)
+  utterance.rate = 0.82;          // سرعة هادئة لكبار السن
+  utterance.onend = () => {
+    if (reading) {
+      currentIndex++;
+      startSpeaking();
+    }
+  };
+  utterance.onerror = () => {
+    if (reading) {
+      currentIndex++;
+      startSpeaking();
+    }
+  };
   speechSynthesis.speak(utterance);
 }
 
+// إيقاف القراءة
 function stop() {
   reading = false;
   speechSynthesis.cancel();
   document.getElementById("fab").style.display = "none";
-  if (linesElements.length) linesElements.forEach(el => el.classList.remove("activeLine"));
+  if (linesElements.length) {
+    linesElements.forEach(el => el.classList.remove("activeLine"));
+  }
 }
 
+// استقبال النص المشترك من تطبيقات أخرى
 window.addEventListener('DOMContentLoaded', () => {
   const params = new URLSearchParams(location.search);
   const sharedText = params.get("text") || params.get("title");
