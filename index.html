@@ -3,15 +3,12 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-<title>ReadAid</title>
-
-<!-- إعدادات التثبيت والأيقونة PWA -->
+<title>ReadAid - تنظيف تام للإيموجي والرموز</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#1e88e5">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="ReadAid">
-
 <style>
 :root {
   --bg-main: #0b1220;
@@ -46,7 +43,7 @@ header {
   display: flex;
   flex-direction: column;
   gap: 15px;
-  margin-bottom: 90px; /* مساحة لزر الإيقاف السفلي */
+  margin-bottom: 90px;
 }
 
 textarea {
@@ -94,11 +91,6 @@ button.secondary {
   background: #2e7d32;
 }
 
-#out {
-  margin-top: 10px;
-}
-
-/* الأسطر البرمجية البصرية المحسنة لكبار السن */
 .line {
   padding: 18px;
   margin-bottom: 12px;
@@ -111,7 +103,6 @@ button.secondary {
   border-right: 5px solid transparent;
 }
 
-/* السطر النشط المميز أثناء القراءة */
 .line.activeLine {
   background: var(--accent);
   border-right-color: var(--primary);
@@ -119,7 +110,6 @@ button.secondary {
   box-shadow: 0 4px 15px rgba(0,0,0,.4);
 }
 
-/* زر الإيقاف العائم الثابت أسفل الشاشة بشكل مريح */
 #fab {
   position: fixed;
   bottom: 20px;
@@ -130,7 +120,7 @@ button.secondary {
   padding: 16px;
   border-radius: 16px;
   background: #d32f2f;
-  display: none; /* يظهر فقط عند البدء بالقراءة */
+  display: none;
   align-items: center;
   justify-content: center;
   font-size: 20px;
@@ -149,26 +139,22 @@ button.secondary {
 }
 </style>
 </head>
-
 <body>
 
-<header>ReadAid — مُعين القراءة البصرية والصوتية</header>
+<header>ReadAid — تنظيف الإيموجي والرموز تلقائياً</header>
 
 <div class="container">
-  <textarea id="input" placeholder="الصق النص هنا أو سيتم استقباله تلقائياً عند مشاركته مع التطبيق..."></textarea>
-  
+  <textarea id="input" placeholder="الصق النص هنا (سيتم حذف الإيموجي والرموز أثناء القراءة فقط)"></textarea>
   <div class="btn-group">
     <button onclick="prepare()">🛠️ معالجة وتجهيز</button>
     <button class="secondary" onclick="readAll()">🔊 بدء القراءة</button>
   </div>
-
   <div id="out"></div>
 </div>
 
 <div id="fab" onclick="stop()">⏹️ إيقاف القراءة الصوتية</div>
 
 <script>
-// تسجيل السيرفس وركر داخلياً لضمان ميزة الـ PWA والتثبيت
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW registration failed:', err));
@@ -179,36 +165,48 @@ let reading = false;
 let currentIndex = 0;
 let linesElements = [];
 
-/* ✨ الفلتر النقي: يحذف الإيموجي والروابط تماماً مع الحفاظ على التشكيل وبنية الجملة الصوتية */
+/* ========== الدالة السحرية التي تتجاهل كل الرموز والإيموجي ========== */
 function cleanTextForSpeech(text) {
-  return text
-    .replace(/https?:\/\/\S+/g, '') // حذف الروابط
-    .replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F900}-\u{1F9FF}\u{1F1E6}-\u{1F1FF}]/gu, '') // حذف جميع الإيموجيز بدقة
-    .replace(/[^\u0600-\u06FF\sA-Za-z0-9\.,!؟\?]/g, '') // تنظيف الرموز الغريبة والزخارف مع الحفاظ على الحروف العربية، التشكيل، وعلامات الترقيم الأساسية
-    .replace(/\s+/g, ' ') // إزالة المسافات الزائدة
-    .trim();
-}
+  if (!text) return '';
 
-/* تقسيم النص بناءً على نهايات الجمل المنطقية لراحة النفس أثناء القراءة */
+  // 1. إزالة الروابط
+  let cleaned = text.replace(/https?:\/\/\S+/gi, '')
+                    .replace(/www\.\S+/gi, '');
+
+  // 2. إزالة الإيموجي والرموز التصويرية (يدعم كل الإيموجي الحديثة)
+  //    \p{Extended_Pictographic} تشمل كل الرموز التعبيرية والصورية
+  cleaned = cleaned.replace(/\p{Extended_Pictographic}/gu, '');
+
+  // 3. إزالة أي رمز ليس من الفئات التالية:
+  //    - الحروف العربية (بما فيها التشكيل الكامل والعلامات)
+  //    - الحروف اللاتينية
+  //    - الأرقام
+  //    - المسافات
+  //    - علامات الترقيم الأساسية: . , ! ? ؟ ، ؛
+  //    هذا يزيل بقايا الرموز مثل ★ ♫ ♥ • ✓ § @ # $ % ^ & * ( ) [ ] { } \ | / ~ ` etc.
+  cleaned = cleaned.replace(/[^\p{Arabic}\p{Latin}\d\s\.,!?؟،؛]/gu, '');
+
+  // 4. تنظيف المسافات الزائدة
+  cleaned = cleaned.replace(/\s+/g, ' ').trim();
+
+  return cleaned;
+}
+/* =============================================================== */
+
 function splitIntoSentences(text) {
-  if(!text.trim()) return [];
-  // التقسيم عبر السطور أو النقط أو علامات الاستفهام والتعجب والفاصلة العربية
-  return text
-    .split(/[\n\.!\?؟،]+/)
-    .map(s => s.trim())
-    .filter(s => s.length > 1);
+  if (!text.trim()) return [];
+  // تقسيم حسب نهايات الجمل المنطقية
+  return text.split(/[\n\.!\?؟،]+/).map(s => s.trim()).filter(s => s.length > 1);
 }
 
-/* تجهيز وتقسيم العرض البصري */
 function prepare() {
   const rawText = document.getElementById("input").value;
   const sentences = splitIntoSentences(rawText);
   const outContainer = document.getElementById("out");
-  
   outContainer.innerHTML = "";
-  stop(); // إيقاف أي قراءة سابقة
+  stop();
 
-  if(sentences.length === 0) {
+  if (sentences.length === 0) {
     outContainer.innerHTML = "<p style='text-align:center; color:#aaa; font-size:18px;'>الرجاء إدخال نص أولاً</p>";
     return;
   }
@@ -216,25 +214,21 @@ function prepare() {
   sentences.forEach((sentence, idx) => {
     const div = document.createElement("div");
     div.className = "line";
-    div.innerText = sentence;
+    div.innerText = sentence;    // نعرض النص الأصلي (بالرموز) للوضوح
     div.dataset.index = idx;
-    // ميزة إضافية: الضغط المباشر على السطر يبدأ القراءة منه
     div.onclick = () => {
-      if(reading) stop();
+      if (reading) stop();
       currentIndex = idx;
       startSpeaking();
     };
     outContainer.appendChild(div);
   });
-
   linesElements = document.querySelectorAll(".line");
 }
 
-/* بدء تشغيل القراءة المتسلسلة */
 function readAll() {
   if (!linesElements.length) prepare();
   if (!linesElements.length) return;
-  
   stop();
   currentIndex = 0;
   startSpeaking();
@@ -247,29 +241,27 @@ function startSpeaking() {
   }
 
   reading = true;
-  document.getElementById("fab").style.display = "flex"; // إظهار زر الإيقاف
+  document.getElementById("fab").style.display = "flex";
 
-  // إزالة التميز من السطور السابقة وإضافته للسطر الحالي
   linesElements.forEach(el => el.classList.remove("activeLine"));
   const currentLine = linesElements[currentIndex];
   currentLine.classList.add("activeLine");
-  
-  // تمرير سلس وذكي لمنتصف الشاشة تماماً لراحة عين المسن
   currentLine.scrollIntoView({ behavior: "smooth", block: "center" });
 
-  // تنظيف السطر الحالي قبل إرساله للمحرك الصوتي
-  let cleanSpeech = cleanTextForSpeech(currentLine.innerText);
+  // النص الأصلي قد يحتوي على إيموجي ورموز، لكن cleanTextForSpeech يزيلها بالكامل
+  let rawSentence = currentLine.innerText;
+  let cleanSentence = cleanTextForSpeech(rawSentence);
 
-  // إذا فرغ السطر بعد التنظيف انتقل للتالي مباشرة
-  if(!cleanSpeech) {
+  // إذا أصبح السطر فارغاً بعد التنظيف، نتخطاه
+  if (!cleanSentence) {
     currentIndex++;
     startSpeaking();
     return;
   }
 
-  const utterance = new SpeechSynthesisUtterance(cleanSpeech);
+  const utterance = new SpeechSynthesisUtterance(cleanSentence);
   utterance.lang = "ar-SA";
-  utterance.rate = 0.82; // سرعة هادئة وموزونة جداً لكبار السن
+  utterance.rate = 0.82;  // سرعة هادئة
 
   utterance.onend = () => {
     if (reading) {
@@ -288,28 +280,25 @@ function startSpeaking() {
   speechSynthesis.speak(utterance);
 }
 
-/* إيقاف فوري وتنظيف الحالة */
 function stop() {
   reading = false;
   speechSynthesis.cancel();
   document.getElementById("fab").style.display = "none";
-  if(linesElements.length) {
+  if (linesElements.length) {
     linesElements.forEach(el => el.classList.remove("activeLine"));
   }
 }
 
-/* استقبال المحتوى المشترك من التطبيقات الأخرى */
+// استقبال النص المشترك من التطبيقات الأخرى
 window.addEventListener('DOMContentLoaded', () => {
   const params = new URLSearchParams(location.search);
   const sharedText = params.get("text") || params.get("title");
   if (sharedText) {
     document.getElementById("input").value = decodeURIComponent(sharedText);
     prepare();
-    // بدء القراءة تلقائياً بعد ثانية واحدة من الاستقبال لراحة المستخدم
     setTimeout(readAll, 1000);
   }
 });
 </script>
-
 </body>
 </html>
