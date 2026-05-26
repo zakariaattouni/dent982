@@ -89,6 +89,16 @@ opacity:1;
 font-size:40px;
 background:#0d47a1;
 }
+/* عنصر مخفي تماماً مخصص للقراءة الصوتية فقط */
+#speechHiddenContainer {
+position: absolute;
+left: -9999px;
+top: -9999px;
+width: 1px;
+height: 1px;
+overflow: hidden;
+speak: none; /* حظر القراءة التلقائية من المتصفح */
+}
 </style>
 </head>
 <body>
@@ -97,6 +107,8 @@ ReadAid — وضع الراحة البصرية
 </header>
 <textarea id="pasteBox" placeholder="الصق النص هنا أو شاركه إلى التطبيق..."></textarea>
 <div id="readerContainer"></div>
+<div id="speechHiddenContainer" aria-hidden="true"></div>
+
 <div class="controls">
 <button onclick="prepareText()">تحويل النص</button>
 <button onclick="toggleRead()">قراءة صوتية</button>
@@ -111,6 +123,7 @@ navigator.serviceWorker.register('sw.js');
 }
 const readerContainer = document.getElementById('readerContainer');
 const pasteBox = document.getElementById('pasteBox');
+const speechHiddenContainer = document.getElementById('speechHiddenContainer');
 let currentFont = 32;
 let reading = false;
 let autoScrolling = false;
@@ -130,13 +143,32 @@ readerContainer.appendChild(div);
 });
 }
 
-function cleanTextForSpeech(text) {
-// هذه الطريقة تحتفظ فقط بـ: الحروف العربية (بما فيها التشكيل)، الحروف الإنجليزية، الأرقام، والمسافات وعلامات الترقيم الشائعة.
-// أي إيموجي أو رمز غريب خارج هذه القائمة سيتم مسحه فوراً.
-let cleaned = text.replace(/[^\u0600-\u06FF\u0750-\u077F\uFB50-\uFDFF\uFE70-\uFEFFa-zA-Z0-9\s\.\,\!\؟\?\-\:\(\)]/g, '');
+// دالة صارمة جداً لتنظيف النص وتحويله إلى أحرف خام فقط
+function cleanTextStrict(text) {
+if (!text) return '';
+// مصفوفة للاحتفاظ بالأحرف الصالحة فقط
+let cleanArray = [];
+for (let i = 0; i < text.length; i++) {
+let code = text.charCodeAt(i);
+let char = text.charAt(i);
 
-// تنظيف المسافات الزائدة الناتجة عن الحذف
-return cleaned.replace(/\s+/g, ' ').trim();
+// السماح بالأحرف العربية وعلامات التشكيل
+if (code >= 0x0600 && code <= 0x06FF) { cleanArray.push(char); continue; }
+if (code >= 0x0750 && code <= 0x077F) { cleanArray.push(char); continue; }
+if (code >= 0xFB50 && code <= 0xFDFF) { cleanArray.push(char); continue; }
+if (code >= 0xFE70 && code <= 0xFEFF) { cleanArray.push(char); continue; }
+
+// السماح بالأحرف الإنجليزية (كبيرة وصغيرة)
+if (code >= 65 && code <= 90) { cleanArray.push(char); continue; }
+if (code >= 97 && code <= 122) { cleanArray.push(char); continue; }
+
+// السماح بالأرقام والمسافات وعلامات التوقف الأساسية التي تعطي وضوحاً للنطق
+if ((code >= 48 && code <= 57) || char === ' ' || char === '.' || char === '،' || char === '؟' || char === '!' || char === '?') {
+cleanArray.push(char);
+}
+}
+// ربط الأحرف وتنظيف المسافات المزدوجة
+return cleanArray.join('').replace(/\s+/g, ' ').trim();
 }
 
 function toggleRead(){
@@ -159,23 +191,38 @@ lines.forEach(l=>l.classList.remove('activeLine'));
 lines[index].classList.add('activeLine');
 lines[index].scrollIntoView({behavior:'smooth',block:'center'});
 
-// تنظيف النص بشكل صارم قبل إرساله للمحرك الصوتي
-const textToRead = cleanTextForSpeech(lines[index].innerText);
+// 1. تنظيف النص برمجياً عبر فحص الأكواد الرقمية للأحرف (Strict Code Filtering)
+const cleanText = cleanTextStrict(lines[index].innerText);
 
-// إذا كان السطر فارغاً تماماً بعد الفلترة الصارمة، ننتقل للسطر التالي فوراً دون توقف
-if (!textToRead || textToRead.length === 0) {
+// إذا أصبح السطر فارغاً تماماً بعد الفلترة الصارمة، نتخطاه فوراً
+if (!cleanText || cleanText.length === 0) {
 index++;
 if(reading) readNext();
 return;
 }
 
-currentUtterance = new SpeechSynthesisUtterance(textToRead);
+// 2. تدمير أي عملية نطق سابقة كلياً لضمان عدم التداخل
+speechSynthesis.cancel();
+
+// 3. حقن النص الصافي داخل العنصر المخفي وعزل المحرك الصوتي ليقرأ منه فقط
+speechHiddenContainer.innerText = cleanText;
+
+currentUtterance = new SpeechSynthesisUtterance(speechHiddenContainer.innerText);
 currentUtterance.lang='ar-SA';
 currentUtterance.rate=.9;
+
 currentUtterance.onend=()=>{
 index++;
 if(reading) readNext();
 };
+
+currentUtterance.onerror=(e)=>{
+console.log("Speech error, moving next...", e);
+index++;
+if(reading) readNext();
+};
+
+// تشغيل القراءة للنص المعزول والمحمي
 speechSynthesis.speak(currentUtterance);
 }
 readNext();
