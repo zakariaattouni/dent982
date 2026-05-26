@@ -3,131 +3,33 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-<title>ReadAid — مشاركة من أي تطبيق</title>
+<title>ReadAid — مشاركة فورية</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#1e88e5">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="ReadAid">
 <style>
-  :root {
-    --bg-main: #0b1220;
-    --bg-card: #1b2430;
-    --primary: #1e88e5;
-    --accent: #0d47a1;
-  }
-  body {
-    margin: 0;
-    padding: 0;
-    font-family: system-ui, -apple-system, sans-serif;
-    background: var(--bg-main);
-    color: #fff;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-  }
-  header {
-    padding: 16px;
-    text-align: center;
-    background: #111827;
-    font-size: 22px;
-    font-weight: 900;
-    box-shadow: 0 2px 10px rgba(0,0,0,.3);
-  }
-  .container {
-    padding: 15px;
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-    margin-bottom: 90px;
-  }
-  textarea {
-    width: 100%;
-    height: 140px;
-    padding: 15px;
-    font-size: 18px;
-    border: 2px solid #2a3746;
-    border-radius: 14px;
-    outline: none;
-    background: var(--bg-card);
-    color: #fff;
-    box-sizing: border-box;
-    resize: none;
-    font-family: monospace;
-  }
+  :root { --bg-main: #0b1220; --bg-card: #1b2430; --primary: #1e88e5; --accent: #0d47a1; }
+  body { margin: 0; padding: 0; font-family: system-ui, sans-serif; background: var(--bg-main); color: #fff; min-height: 100vh; display: flex; flex-direction: column; }
+  header { padding: 16px; text-align: center; background: #111827; font-size: 22px; font-weight: 900; }
+  .container { padding: 15px; flex: 1; display: flex; flex-direction: column; gap: 15px; margin-bottom: 90px; }
+  textarea { width: 100%; height: 140px; padding: 15px; font-size: 18px; border: 2px solid #2a3746; border-radius: 14px; background: var(--bg-card); color: #fff; box-sizing: border-box; resize: none; }
   textarea:focus { border-color: var(--primary); }
-  .btn-group {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-  }
-  button {
-    padding: 16px;
-    font-size: 18px;
-    font-weight: 900;
-    border: none;
-    border-radius: 14px;
-    background: var(--primary);
-    color: #fff;
-    cursor: pointer;
-    transition: transform 0.1s;
-  }
+  .btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  button { padding: 16px; font-size: 18px; font-weight: 900; border: none; border-radius: 14px; background: var(--primary); color: #fff; cursor: pointer; transition: transform 0.1s; }
   button:active { transform: scale(0.97); }
   button.secondary { background: #2e7d32; }
-  .line {
-    padding: 18px;
-    margin-bottom: 12px;
-    background: var(--bg-card);
-    border-radius: 14px;
-    font-size: 28px;
-    line-height: 1.8;
-    font-weight: 700;
-    border-right: 5px solid transparent;
-  }
-  .line.activeLine {
-    background: var(--accent);
-    border-right-color: var(--primary);
-    transform: scale(1.02);
-  }
-  #fab {
-    position: fixed;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 85%;
-    max-width: 400px;
-    padding: 16px;
-    border-radius: 16px;
-    background: #d32f2f;
-    display: none;
-    justify-content: center;
-    font-size: 20px;
-    font-weight: 900;
-    cursor: pointer;
-    text-align: center;
-  }
-  .toast {
-    position: fixed;
-    bottom: 100px;
-    left: 20px;
-    right: 20px;
-    background: #000000aa;
-    backdrop-filter: blur(10px);
-    border-radius: 40px;
-    padding: 10px;
-    text-align: center;
-    font-size: 14px;
-    color: #ffdd88;
-    z-index: 1000;
-    transition: opacity 1s;
-  }
+  .line { padding: 18px; margin-bottom: 12px; background: var(--bg-card); border-radius: 14px; font-size: 28px; line-height: 1.8; font-weight: 700; border-right: 5px solid transparent; }
+  .line.activeLine { background: var(--accent); border-right-color: var(--primary); transform: scale(1.02); }
+  #fab { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 85%; max-width: 400px; padding: 16px; border-radius: 16px; background: #d32f2f; display: none; justify-content: center; font-size: 20px; font-weight: 900; cursor: pointer; text-align: center; }
+  .toast { position: fixed; bottom: 100px; left: 20px; right: 20px; background: #000000aa; backdrop-filter: blur(10px); border-radius: 40px; padding: 10px; text-align: center; font-size: 14px; color: #ffdd88; z-index: 1000; transition: opacity 1s; }
 </style>
 </head>
 <body>
-<header>ReadAid — استلام النص بالمشاركة</header>
+<header>ReadAid — شارك نصاً من أي تطبيق</header>
 <div class="container">
-  <textarea id="input" placeholder="سيظهر هنا النص المشترك تلقائياً... أو الصقه يدوياً"></textarea>
+  <textarea id="input" placeholder="سينتقل النص هنا تلقائياً بعد المشاركة... أو الصقه يدوياً"></textarea>
   <div class="btn-group">
     <button onclick="prepare()">🛠️ تجهيز النص</button>
     <button class="secondary" onclick="readAll()">🔊 ابدأ القراءة</button>
@@ -138,38 +40,25 @@
 <div id="toast" style="display:none;"></div>
 
 <script>
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW error:', err));
-  });
-}
+let reading = false, currentIndex = 0, linesElements = [];
 
-let reading = false;
-let currentIndex = 0;
-let linesElements = [];
-
-// دالة التنظيف الصارمة (نفس السابقة)
 function cleanTextForSpeech(text) {
   if (!text) return '';
   let cleaned = text.replace(/https?:\/\/\S+/gi, '').replace(/www\.\S+/gi, '');
-  const allowedChars = /[^\u0600-\u06FF\u0610-\u061A\u064B-\u065F\u0670a-zA-Z0-9\s\.,!?؟،؛]/g;
-  cleaned = cleaned.replace(allowedChars, '');
-  cleaned = cleaned.replace(/\s+/g, ' ').trim();
-  return cleaned;
+  cleaned = cleaned.replace(/[^\u0600-\u06FF\u0610-\u061A\u064B-\u065F\u0670a-zA-Z0-9\s\.,!?؟،؛]/g, '');
+  return cleaned.replace(/\s+/g, ' ').trim();
 }
-
 function splitIntoSentences(text) {
   if (!text.trim()) return [];
   return text.split(/[\n\.!\?؟،]+/).map(s => s.trim()).filter(s => s.length > 1);
 }
-
 function prepare() {
   const rawText = document.getElementById("input").value;
   const sentences = splitIntoSentences(rawText);
   const outContainer = document.getElementById("out");
   outContainer.innerHTML = "";
   stop();
-  if (sentences.length === 0) {
+  if (!sentences.length) {
     outContainer.innerHTML = "<p style='text-align:center; color:#aaa;'>الرجاء إدخال نص أولاً</p>";
     return;
   }
@@ -178,16 +67,11 @@ function prepare() {
     div.className = "line";
     div.innerText = sentence;
     div.dataset.index = idx;
-    div.onclick = () => {
-      if (reading) stop();
-      currentIndex = idx;
-      startSpeaking();
-    };
+    div.onclick = () => { if (reading) stop(); currentIndex = idx; startSpeaking(); };
     outContainer.appendChild(div);
   });
   linesElements = document.querySelectorAll(".line");
 }
-
 function readAll() {
   if (!linesElements.length) prepare();
   if (!linesElements.length) return;
@@ -195,12 +79,8 @@ function readAll() {
   currentIndex = 0;
   startSpeaking();
 }
-
 function startSpeaking() {
-  if (currentIndex >= linesElements.length) {
-    stop();
-    return;
-  }
+  if (currentIndex >= linesElements.length) { stop(); return; }
   reading = true;
   document.getElementById("fab").style.display = "flex";
   linesElements.forEach(el => el.classList.remove("activeLine"));
@@ -208,26 +88,19 @@ function startSpeaking() {
   currentLine.classList.add("activeLine");
   currentLine.scrollIntoView({ behavior: "smooth", block: "center" });
   let cleanSentence = cleanTextForSpeech(currentLine.innerText);
-  if (!cleanSentence) {
-    currentIndex++;
-    startSpeaking();
-    return;
-  }
+  if (!cleanSentence) { currentIndex++; startSpeaking(); return; }
   const utterance = new SpeechSynthesisUtterance(cleanSentence);
-  utterance.lang = "ar-SA";
-  utterance.rate = 0.82;
+  utterance.lang = "ar-SA"; utterance.rate = 0.82;
   utterance.onend = () => { if (reading) { currentIndex++; startSpeaking(); } };
   utterance.onerror = () => { if (reading) { currentIndex++; startSpeaking(); } };
   speechSynthesis.speak(utterance);
 }
-
 function stop() {
   reading = false;
   speechSynthesis.cancel();
   document.getElementById("fab").style.display = "none";
   if (linesElements.length) linesElements.forEach(el => el.classList.remove("activeLine"));
 }
-
 function showMessage(msg, isError = false) {
   const toast = document.getElementById("toast");
   toast.innerText = msg;
@@ -235,70 +108,52 @@ function showMessage(msg, isError = false) {
   toast.style.background = isError ? "#a22" : "#2a5";
   setTimeout(() => { toast.style.display = "none"; }, 3000);
 }
-
-// ================ معالجة المشاركات المتقدمة ================
-function getSharedTextFromUrl() {
-  try {
-    const params = new URLSearchParams(window.location.search);
-    let text = params.get("text") || params.get("title") || "";
-    if (text) {
-      text = decodeURIComponent(text);
-      // بعض التطبيقات ترسل النص مع فواصل URL غير قياسية
-      text = text.replace(/\+/g, ' ');
-      return text;
+// ================ استقبال المشاركات ================
+function registerSW() {
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js').then(reg => {
+      console.log('SW registered:', reg);
+      // طلب النص المخزن بعد التسجيل
+      if (navigator.serviceWorker.controller) {
+        navigator.serviceWorker.controller.postMessage({ type: 'GET_SHARED_TEXT' });
+      } else {
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+          navigator.serviceWorker.controller.postMessage({ type: 'GET_SHARED_TEXT' });
+        });
+      }
+    }).catch(err => showMessage('فشل تسجيل Service Worker', true));
+  }
+}
+window.addEventListener('load', () => {
+  registerSW();
+  // استقبال الرسائل من Service Worker
+  navigator.serviceWorker.addEventListener('message', (event) => {
+    if (event.data && event.data.type === 'SHARED_TEXT' && event.data.text) {
+      document.getElementById("input").value = event.data.text;
+      showMessage('📥 تم استلام النص المشارك');
+      prepare();
+      setTimeout(readAll, 1000);
     }
-  } catch (e) { console.warn(e); }
-  // محاولة من hash
-  if (window.location.hash) {
-    try {
-      let hash = decodeURIComponent(window.location.hash.slice(1));
-      if (hash.startsWith("text=")) hash = hash.replace("text=", "");
-      return hash;
-    } catch(e) {}
-  }
-  return "";
-}
-
-async function handleSharedData() {
-  // 1. من URL (يعمل عند المشاركة عبر share_target مع GET)
-  let sharedText = getSharedTextFromUrl();
-  if (sharedText) {
-    document.getElementById("input").value = sharedText;
-    showMessage("✅ تم استلام النص بنجاح");
+  });
+  // محاولة من URL params (كحل احتياطي)
+  const params = new URLSearchParams(location.search);
+  const sharedText = params.get('text') || params.get('title');
+  if (sharedText && !document.getElementById("input").value) {
+    document.getElementById("input").value = decodeURIComponent(sharedText);
+    showMessage('✅ تم الاستلام من الرابط');
     prepare();
     setTimeout(readAll, 1000);
-    return;
-  }
-  
-  // 2. محاولة من localStorage (بعض المتصفحات تخزن المشاركات مؤقتاً)
-  const stored = localStorage.getItem("pendingShare");
-  if (stored) {
-    localStorage.removeItem("pendingShare");
-    document.getElementById("input").value = stored;
-    showMessage("📥 تم استلام النص من التخزين المؤقت");
+  } else if (localStorage.getItem('pendingShare') && !document.getElementById("input").value) {
+    document.getElementById("input").value = localStorage.getItem('pendingShare');
+    localStorage.removeItem('pendingShare');
+    showMessage('📦 تم استلام نص من التخزين');
     prepare();
     setTimeout(readAll, 1000);
-    return;
-  }
-  
-  // 3. إذا لم يأت شيء، نعرض رسالة للمستخدم
-  if (document.getElementById("input").value.trim() === "") {
-    showMessage("✏️ لم يتم استلام نص تلقائياً. يمكنك لصق النص يدوياً ثم الضغط على 'بدء القراءة'", true);
-  }
-}
-
-// مستمع للمشاركات عبر POST (للـ PWA المتقدم - نادر الاستخدام لكن نضعه)
-if ('serviceWorker' in navigator && 'NavigationPreloadManager' in window) {
-  // نضيف إمكانية تلقي POST عبر service worker (يتطلب تعديل sw.js)
-  // لكن سنعتمد على الطرق أعلاه كافية لمعظم الأجهزة.
-}
-
-window.addEventListener('DOMContentLoaded', () => {
-  // إذا كان هناك نص في textarea بالفعل (مثل من حفظ الجلسة) نجهزه
-  if (document.getElementById("input").value.trim() !== "") {
+  } else if (document.getElementById("input").value.trim() !== "") {
     prepare();
+  } else {
+    showMessage('✏️ أرسل نصاً عبر مشاركة النظام أو الصقه يدوياً', true);
   }
-  handleSharedData();
 });
 </script>
 </body>
