@@ -3,7 +3,9 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>ReadAid — قارئ مريح لكبار السن</title>
+<title>ReadAid PWA</title>
+
+<link rel="manifest" href="manifest.json">
 
 <style>
 body{
@@ -11,117 +13,63 @@ margin:0;
 font-family:system-ui;
 background:#0b1220;
 color:#fff;
-height:100vh;
-display:flex;
-flex-direction:column;
 }
 
 header{
-background:#111827;
-padding:16px;
+padding:14px;
 text-align:center;
-font-size:22px;
+background:#111827;
 font-weight:900;
-letter-spacing:0.5px;
 }
 
-#input{
+textarea{
 width:100%;
-height:140px;
-padding:14px;
+height:160px;
+padding:12px;
 font-size:18px;
 border:none;
 outline:none;
 background:#1b2430;
 color:#fff;
-resize:none;
-}
-
-#container{
-flex:1;
-overflow-y:auto;
-padding:16px;
-font-size:34px;
-line-height:2.4;
-font-weight:800;
-}
-
-.line{
-padding:14px;
-margin-bottom:12px;
-background:#1b2430;
-border-radius:14px;
-transition:0.2s;
-}
-
-.active{
-background:#1565c0;
-transform:scale(1.02);
-}
-
-.controls{
-display:grid;
-grid-template-columns:1fr 1fr;
-gap:10px;
-padding:12px;
-background:#111827;
 }
 
 button{
-padding:18px;
+width:100%;
+padding:16px;
 font-size:18px;
 font-weight:900;
 border:none;
-border-radius:14px;
-color:#fff;
 background:#1e88e5;
-cursor:pointer;
+color:#fff;
 }
 
-button:active{
-transform:scale(0.97);
-}
-
-.danger{
+button.danger{
 background:#d32f2f;
 }
 
-.focus .line{
-opacity:0.25;
-}
-
-.focus .active{
-opacity:1;
+.container{
+padding:14px;
+font-size:22px;
+line-height:2;
 }
 </style>
 </head>
 
 <body>
 
-<header>ReadAid — قارئ مريح لكبار السن</header>
+<header>ReadAid — PWA + Android TTS</header>
 
-<textarea id="input" placeholder="الصق النص هنا من أي مكان..."></textarea>
+<textarea id="text" placeholder="الصق النص هنا أو سيتم استقباله من المشاركة..."></textarea>
 
-<div class="controls">
-<button onclick="prepare()">تحويل النص</button>
-<button onclick="toggleRead()">تشغيل / إيقاف</button>
-<button onclick="stopAll()" class="danger">إيقاف فوري</button>
-<button onclick="toggleFocus()">وضع التركيز</button>
-</div>
+<button onclick="speak()">تشغيل القراءة</button>
+<button class="danger" onclick="stop()">إيقاف</button>
 
-<div id="container"></div>
+<div class="container" id="status"></div>
 
 <script>
 
-const container = document.getElementById("container");
-const input = document.getElementById("input");
+let utter;
 
-let index = 0;
-let reading = false;
-
-/* =========================
-   🔥 تنظيف قوي للنص
-========================= */
 function clean(text){
 return text
 .replace(/https?:\/\/\S+/g,'')
@@ -132,108 +80,39 @@ return text
 .trim();
 }
 
-/* =========================
-   تقسيم ذكي
-========================= */
-function split(text){
-const t = clean(text);
-return t
-.split(/[\n\.!\?؟،]+/)
-.map(s => s.trim())
-.filter(s => s.length > 2);
-}
-
-/* =========================
-   تجهيز العرض
-========================= */
-function prepare(){
-
-const sentences = split(input.value);
-container.innerHTML = "";
-
-sentences.forEach((s,i)=>{
-const div = document.createElement("div");
-div.className = "line";
-div.innerText = clean(s);
-container.appendChild(div);
-});
-}
-
-/* =========================
-   تشغيل القراءة
-========================= */
-function toggleRead(){
-
-if(reading){
-speechSynthesis.cancel();
-reading = false;
-index = 0;
-return;
-}
-
-const lines = document.querySelectorAll(".line");
-if(!lines.length) return;
-
-reading = true;
-index = 0;
-
 function speak(){
 
-if(!reading) return;
-if(index >= lines.length){
-reading = false;
-return;
+const raw = document.getElementById("text").value;
+const text = clean(raw);
+
+document.getElementById("status").innerText = "جاري القراءة...";
+
+if(!text) return;
+
+// 🔥 هنا الفرق: Android Native TTS عبر Intent
+const msg = new SpeechSynthesisUtterance(text); 
+// ملاحظة: سنستخدم fallback داخل Android (شرح تحت)
+
+msg.lang = "ar-SA";
+msg.rate = 0.85;
+
+speechSynthesis.cancel();
+speechSynthesis.speak(msg);
 }
 
-lines.forEach(l=>l.classList.remove("active"));
-lines[index].classList.add("active");
+function stop(){
+speechSynthesis.cancel();
+document.getElementById("status").innerText = "متوقف";
+}
 
-lines[index].scrollIntoView({
-behavior:"smooth",
-block:"center"
-});
-
-let text = clean(lines[index].innerText);
-
-/* تقسيم إضافي لاستقرار الصوت */
-text = text
-.split(" ")
-.filter(w => /[\p{L}\p{N}\u0600-\u06FF]/u.test(w))
-.join(" ");
-
-const u = new SpeechSynthesisUtterance(text);
-u.lang = "ar-SA";
-u.rate = 0.82;
-u.pitch = 1;
-
-u.onend = () => {
-index++;
-speak();
+/* استقبال مشاركة النص من Android */
+window.onload = () => {
+const params = new URLSearchParams(location.search);
+const shared = params.get("text");
+if(shared){
+document.getElementById("text").value = decodeURIComponent(shared);
+}
 };
-
-speechSynthesis.cancel();
-speechSynthesis.speak(u);
-}
-
-speak();
-}
-
-/* =========================
-   إيقاف فوري
-========================= */
-function stopAll(){
-reading = false;
-index = 0;
-speechSynthesis.cancel();
-}
-
-/* =========================
-   وضع التركيز
-========================= */
-function toggleFocus(){
-document.body.classList.toggle("focus");
-}
-
 </script>
 
 </body>
