@@ -1,8 +1,21 @@
 {
-"name": "ReadAid",
-"short_name": "ReadAid",
-"start_url": "./index.html",
-"display": "standalone",
-"background_color": "#0b1220",
-"theme_color": "#1e88e5"
+  "short_name": "ReadAid",
+  "name": "ReadAid - مُعين القراءة",
+  "icons": [
+    {
+      "src": "icon.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "index.html",
+  "background_color": "#0b1220",
+  "theme-color": "#1e88e5",
+  "display": "standalone",
+  "orientation": "portrait"
 }
