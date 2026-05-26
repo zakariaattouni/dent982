@@ -1,1 +1,10 @@
-
+{
+  "name": "ReadAid",
+  "short_name": "ReadAid",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#4dd0e1",
+  "icons": []
+}
