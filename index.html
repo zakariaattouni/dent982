@@ -3,9 +3,10 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>ReadAid PWA</title>
+<title>ReadAid</title>
 
 <link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1e88e5">
 
 <style>
 body{
@@ -19,6 +20,7 @@ header{
 padding:14px;
 text-align:center;
 background:#111827;
+font-size:20px;
 font-weight:900;
 }
 
@@ -33,6 +35,20 @@ background:#1b2430;
 color:#fff;
 }
 
+#out{
+padding:14px;
+font-size:26px;
+line-height:2;
+font-weight:800;
+}
+
+.line{
+padding:12px;
+margin-bottom:10px;
+background:#1b2430;
+border-radius:12px;
+}
+
 button{
 width:100%;
 padding:16px;
@@ -43,33 +59,48 @@ background:#1e88e5;
 color:#fff;
 }
 
-button.danger{
+#fab{
+position:fixed;
+bottom:20px;
+left:20px;
+width:70px;
+height:70px;
+border-radius:50%;
 background:#d32f2f;
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:28px;
+color:#fff;
+box-shadow:0 4px 12px rgba(0,0,0,.4);
+user-select:none;
 }
 
-.container{
-padding:14px;
-font-size:22px;
-line-height:2;
+#fab:active{
+transform:scale(0.95);
 }
 </style>
 </head>
 
 <body>
 
-<header>ReadAid — PWA + Android TTS</header>
+<header>ReadAid — قارئ بسيط لكبار السن</header>
 
-<textarea id="text" placeholder="الصق النص هنا أو سيتم استقباله من المشاركة..."></textarea>
+<textarea id="input" placeholder="الصق النص أو سيتم استقباله من المشاركة..."></textarea>
 
-<button onclick="speak()">تشغيل القراءة</button>
-<button class="danger" onclick="stop()">إيقاف</button>
+<button onclick="prepare()">تحويل النص</button>
+<button onclick="readAll()">قراءة كاملة</button>
 
-<div class="container" id="status"></div>
+<div id="out"></div>
+
+<div id="fab" onclick="stop()">⏹</div>
 
 <script>
 
-let utter;
+let reading = false;
+let index = 0;
 
+/* 🔥 تنظيف قوي */
 function clean(text){
 return text
 .replace(/https?:\/\/\S+/g,'')
@@ -80,39 +111,83 @@ return text
 .trim();
 }
 
+/* تقسيم بسيط */
+function split(text){
+return clean(text)
+.split(/[\n\.!\?؟،]+/)
+.map(s=>s.trim())
+.filter(s=>s.length>2);
+}
+
+/* تجهيز العرض */
+function prepare(){
+const parts = split(document.getElementById("input").value);
+
+const out = document.getElementById("out");
+out.innerHTML = "";
+
+parts.forEach(p=>{
+const div = document.createElement("div");
+div.className = "line";
+div.innerText = p;
+out.appendChild(div);
+});
+}
+
+/* قراءة كاملة */
+function readAll(){
+
+const lines = document.querySelectorAll(".line");
+if(!lines.length) return;
+
+reading = true;
+index = 0;
+
 function speak(){
 
-const raw = document.getElementById("text").value;
-const text = clean(raw);
+if(!reading) return;
 
-document.getElementById("status").innerText = "جاري القراءة...";
-
-if(!text) return;
-
-// 🔥 هنا الفرق: Android Native TTS عبر Intent
-const msg = new SpeechSynthesisUtterance(text); 
-// ملاحظة: سنستخدم fallback داخل Android (شرح تحت)
-
-msg.lang = "ar-SA";
-msg.rate = 0.85;
-
-speechSynthesis.cancel();
-speechSynthesis.speak(msg);
+if(index >= lines.length){
+reading = false;
+return;
 }
 
+lines[index].scrollIntoView({behavior:"smooth",block:"center"});
+
+let text = clean(lines[index].innerText);
+
+const u = new SpeechSynthesisUtterance(text);
+u.lang = "ar-SA";
+u.rate = 0.85;
+
+u.onend = ()=>{
+index++;
+speak();
+};
+
+speechSynthesis.cancel();
+speechSynthesis.speak(u);
+}
+
+speak();
+}
+
+/* إيقاف فوري */
 function stop(){
+reading = false;
 speechSynthesis.cancel();
-document.getElementById("status").innerText = "متوقف";
 }
 
-/* استقبال مشاركة النص من Android */
+/* استقبال المشاركة من أي تطبيق */
 window.onload = () => {
 const params = new URLSearchParams(location.search);
 const shared = params.get("text");
 if(shared){
-document.getElementById("text").value = decodeURIComponent(shared);
+document.getElementById("input").value = decodeURIComponent(shared);
+prepare();
 }
 };
+
 </script>
 
 </body>
