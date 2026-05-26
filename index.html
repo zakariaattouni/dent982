@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-<title>ReadAid — قارئ ملزم بالحروف العربية والإنكليزية فقط</title>
+<title>ReadAid — مشاركة من أي تطبيق</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#1e88e5">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -54,6 +54,7 @@
     color: #fff;
     box-sizing: border-box;
     resize: none;
+    font-family: monospace;
   }
   textarea:focus { border-color: var(--primary); }
   .btn-group {
@@ -106,12 +107,27 @@
     cursor: pointer;
     text-align: center;
   }
+  .toast {
+    position: fixed;
+    bottom: 100px;
+    left: 20px;
+    right: 20px;
+    background: #000000aa;
+    backdrop-filter: blur(10px);
+    border-radius: 40px;
+    padding: 10px;
+    text-align: center;
+    font-size: 14px;
+    color: #ffdd88;
+    z-index: 1000;
+    transition: opacity 1s;
+  }
 </style>
 </head>
 <body>
-<header>ReadAid — لا ينطق إلا الحروف العربية والإنجليزية والأرقام</header>
+<header>ReadAid — استلام النص بالمشاركة</header>
 <div class="container">
-  <textarea id="input" placeholder="الصق نصاً فيه رموز مثل ❤️ 💰 $ 🩸 ★ → ستحذف تلقائياً"></textarea>
+  <textarea id="input" placeholder="سيظهر هنا النص المشترك تلقائياً... أو الصقه يدوياً"></textarea>
   <div class="btn-group">
     <button onclick="prepare()">🛠️ تجهيز النص</button>
     <button class="secondary" onclick="readAll()">🔊 ابدأ القراءة</button>
@@ -119,12 +135,12 @@
   <div id="out"></div>
 </div>
 <div id="fab" onclick="stop()">⏹️ إيقاف</div>
+<div id="toast" style="display:none;"></div>
 
 <script>
-// تسجيل Service Worker (لـ PWA)
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js').catch(err => console.log(err));
+    navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW error:', err));
   });
 }
 
@@ -132,41 +148,21 @@ let reading = false;
 let currentIndex = 0;
 let linesElements = [];
 
-/**
- * دالة التنظيف الصارمة: تحتفظ فقط بالحروف العربية، الحروف الإنجليزية، الأرقام، وعلامات الترقيم الأساسية.
- * كل ما عدى ذلك يتم حذفه بالكامل قبل النطق.
- */
+// دالة التنظيف الصارمة (نفس السابقة)
 function cleanTextForSpeech(text) {
   if (!text) return '';
-  
-  // أولاً: إزالة الروابط
   let cleaned = text.replace(/https?:\/\/\S+/gi, '').replace(/www\.\S+/gi, '');
-  
-  // تعريف القيم المسموح بها (قائمة بيضاء واضحة):
-  // 1. الحروف العربية الكاملة + الهمزات والتشكيل + الألف المقصورة + التاء المربوطة
-  //    نطاق Unicode: 0600-06FF (العربية)، 0610-061A (تشكيل إضافي)، 064B-065F (تشكيل حركات)، 0670 (ألف خنجرية)
-  //    إضافة حروف فارسية/عربية إضافية: 06C0-06FF (اختياري)
-  //    نقوم بتغطية أوسع: \u0600-\u06FF يضم معظم الحروف العربية والعلامات.
-  // 2. الحروف الإنجليزية a-z A-Z
-  // 3. الأرقام 0-9
-  // 4. المسافات \s
-  // 5. علامات الترقيم الأساسية: . , ! ? ؟ ، ؛
   const allowedChars = /[^\u0600-\u06FF\u0610-\u061A\u064B-\u065F\u0670a-zA-Z0-9\s\.,!?؟،؛]/g;
   cleaned = cleaned.replace(allowedChars, '');
-  
-  // إزالة المسافات الزائدة (أكثر من مسافة واحدة)
   cleaned = cleaned.replace(/\s+/g, ' ').trim();
-  
   return cleaned;
 }
 
-// تقسيم النص إلى جمل منطقية
 function splitIntoSentences(text) {
   if (!text.trim()) return [];
   return text.split(/[\n\.!\?؟،]+/).map(s => s.trim()).filter(s => s.length > 1);
 }
 
-// تجهيز العرض البصري
 function prepare() {
   const rawText = document.getElementById("input").value;
   const sentences = splitIntoSentences(rawText);
@@ -180,7 +176,7 @@ function prepare() {
   sentences.forEach((sentence, idx) => {
     const div = document.createElement("div");
     div.className = "line";
-    div.innerText = sentence;    // نعرض النص الأصلي (بالرموز) للوضوح
+    div.innerText = sentence;
     div.dataset.index = idx;
     div.onclick = () => {
       if (reading) stop();
@@ -192,7 +188,6 @@ function prepare() {
   linesElements = document.querySelectorAll(".line");
 }
 
-// بدء القراءة من أول سطر
 function readAll() {
   if (!linesElements.length) prepare();
   if (!linesElements.length) return;
@@ -201,7 +196,6 @@ function readAll() {
   startSpeaking();
 }
 
-// القراءة بالتسلسل مع التنظيف الصارم
 function startSpeaking() {
   if (currentIndex >= linesElements.length) {
     stop();
@@ -213,53 +207,98 @@ function startSpeaking() {
   const currentLine = linesElements[currentIndex];
   currentLine.classList.add("activeLine");
   currentLine.scrollIntoView({ behavior: "smooth", block: "center" });
-  
-  // تطبيق التنظيف الصارم (لن يبقى إلا الحروف العربية والإنجليزية والأرقام وعلامات الترقيم الأساسية)
   let cleanSentence = cleanTextForSpeech(currentLine.innerText);
   if (!cleanSentence) {
-    // السطر فارغ بعد التنظيف → انتقل إلى الذي يليه
     currentIndex++;
     startSpeaking();
     return;
   }
-  
   const utterance = new SpeechSynthesisUtterance(cleanSentence);
-  utterance.lang = "ar-SA";       // نطق عربي (يدعم الإنجليزية أيضاً)
-  utterance.rate = 0.82;          // سرعة هادئة لكبار السن
-  utterance.onend = () => {
-    if (reading) {
-      currentIndex++;
-      startSpeaking();
-    }
-  };
-  utterance.onerror = () => {
-    if (reading) {
-      currentIndex++;
-      startSpeaking();
-    }
-  };
+  utterance.lang = "ar-SA";
+  utterance.rate = 0.82;
+  utterance.onend = () => { if (reading) { currentIndex++; startSpeaking(); } };
+  utterance.onerror = () => { if (reading) { currentIndex++; startSpeaking(); } };
   speechSynthesis.speak(utterance);
 }
 
-// إيقاف القراءة
 function stop() {
   reading = false;
   speechSynthesis.cancel();
   document.getElementById("fab").style.display = "none";
-  if (linesElements.length) {
-    linesElements.forEach(el => el.classList.remove("activeLine"));
+  if (linesElements.length) linesElements.forEach(el => el.classList.remove("activeLine"));
+}
+
+function showMessage(msg, isError = false) {
+  const toast = document.getElementById("toast");
+  toast.innerText = msg;
+  toast.style.display = "block";
+  toast.style.background = isError ? "#a22" : "#2a5";
+  setTimeout(() => { toast.style.display = "none"; }, 3000);
+}
+
+// ================ معالجة المشاركات المتقدمة ================
+function getSharedTextFromUrl() {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    let text = params.get("text") || params.get("title") || "";
+    if (text) {
+      text = decodeURIComponent(text);
+      // بعض التطبيقات ترسل النص مع فواصل URL غير قياسية
+      text = text.replace(/\+/g, ' ');
+      return text;
+    }
+  } catch (e) { console.warn(e); }
+  // محاولة من hash
+  if (window.location.hash) {
+    try {
+      let hash = decodeURIComponent(window.location.hash.slice(1));
+      if (hash.startsWith("text=")) hash = hash.replace("text=", "");
+      return hash;
+    } catch(e) {}
+  }
+  return "";
+}
+
+async function handleSharedData() {
+  // 1. من URL (يعمل عند المشاركة عبر share_target مع GET)
+  let sharedText = getSharedTextFromUrl();
+  if (sharedText) {
+    document.getElementById("input").value = sharedText;
+    showMessage("✅ تم استلام النص بنجاح");
+    prepare();
+    setTimeout(readAll, 1000);
+    return;
+  }
+  
+  // 2. محاولة من localStorage (بعض المتصفحات تخزن المشاركات مؤقتاً)
+  const stored = localStorage.getItem("pendingShare");
+  if (stored) {
+    localStorage.removeItem("pendingShare");
+    document.getElementById("input").value = stored;
+    showMessage("📥 تم استلام النص من التخزين المؤقت");
+    prepare();
+    setTimeout(readAll, 1000);
+    return;
+  }
+  
+  // 3. إذا لم يأت شيء، نعرض رسالة للمستخدم
+  if (document.getElementById("input").value.trim() === "") {
+    showMessage("✏️ لم يتم استلام نص تلقائياً. يمكنك لصق النص يدوياً ثم الضغط على 'بدء القراءة'", true);
   }
 }
 
-// استقبال النص المشترك من تطبيقات أخرى
+// مستمع للمشاركات عبر POST (للـ PWA المتقدم - نادر الاستخدام لكن نضعه)
+if ('serviceWorker' in navigator && 'NavigationPreloadManager' in window) {
+  // نضيف إمكانية تلقي POST عبر service worker (يتطلب تعديل sw.js)
+  // لكن سنعتمد على الطرق أعلاه كافية لمعظم الأجهزة.
+}
+
 window.addEventListener('DOMContentLoaded', () => {
-  const params = new URLSearchParams(location.search);
-  const sharedText = params.get("text") || params.get("title");
-  if (sharedText) {
-    document.getElementById("input").value = decodeURIComponent(sharedText);
+  // إذا كان هناك نص في textarea بالفعل (مثل من حفظ الجلسة) نجهزه
+  if (document.getElementById("input").value.trim() !== "") {
     prepare();
-    setTimeout(readAll, 1000);
   }
+  handleSharedData();
 });
 </script>
 </body>
