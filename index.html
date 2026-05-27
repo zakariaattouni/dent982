@@ -2,109 +2,34 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>ReadAid</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<title>ReadAid - Stable</title>
 <style>
-:root {
-  --bg-main: #0b1220;
-  --bg-card: #1b2430;
-  --primary: #1e88e5;
-  --accent: #0d47a1;
-}
-body {
-  margin: 0;
-  padding: 0;
-  font-family: system-ui, sans-serif;
-  background: var(--bg-main);
-  color: #fff;
-  min-height: 100vh;
-}
-header {
-  padding: 16px;
-  text-align: center;
-  background: #111827;
-  font-size: 20px;
-  font-weight: 900;
-}
-.container {
-  padding: 15px;
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-  margin-bottom: 80px;
-}
-textarea {
-  width: 100%;
-  height: 120px;
-  padding: 12px;
-  font-size: 16px;
-  border: 2px solid #2a3746;
-  border-radius: 12px;
-  background: var(--bg-card);
-  color: #fff;
-  box-sizing: border-box;
-}
-.btn-group {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;}
-button {
-  padding: 14px;
-  font-size: 16px;
-  font-weight: 800;
-  border: none;
-  border-radius: 12px;
-  background: var(--primary);
-  color: #fff;
-  cursor: pointer;
-}
-button.secondary { background: #2e7d32; }
-#out { margin-top: 10px; }
-.line {
-  padding: 16px;
-  margin: 8px 0;
-  background: var(--bg-card);
-  border-radius: 12px;
-  font-size: 24px;
-  line-height: 1.6;
-  border-right: 4px solid transparent;
-}
-.line.active {
-  background: var(--accent);
-  border-right-color: var(--primary);
-}
-#stopBtn {
-  position: fixed;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 80%;
-  max-width: 300px;
-  padding: 14px;
-  background: #d32f2f;
-  border-radius: 50px;
-  text-align: center;
-  font-weight: 900;
-  display: none;
-  cursor: pointer;
-}
-#status {
-  position: fixed;
-  top: 60px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(46, 125, 50, 0.9);
-  padding: 10px 20px;
-  border-radius: 8px;
-  font-size: 14px;  display: none;
-  z-index: 1000;
-}
+:root { --bg:#0b1220; --card:#1b2430; --pri:#1e88e5; --acc:#0d47a1; --ok:#2e7d32; --err:#d32f2f; }
+* { box-sizing: border-box; }
+body { margin:0; padding:0; font-family:system-ui,-apple-system,sans-serif; background:var(--bg); color:#fff; min-height:100vh; display:flex; flex-direction:column; }
+header { padding:16px; text-align:center; background:#111827; font-size:20px; font-weight:900; box-shadow:0 2px 10px rgba(0,0,0,.3); }
+.container { padding:15px; flex:1; display:flex; flex-direction:column; gap:15px; margin-bottom:80px; }
+textarea { width:100%; height:120px; padding:12px; font-size:16px; border:2px solid #2a3746; border-radius:12px; background:var(--card); color:#fff; resize:none; outline:none; }
+textarea:focus { border-color:var(--pri); }
+.btn-group { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+button { padding:14px; font-size:16px; font-weight:800; border:none; border-radius:12px; background:var(--pri); color:#fff; cursor:pointer; transition:transform .1s; }
+button:active { transform:scale(.98); }
+button.secondary { background:var(--ok); }
+button.danger { background:var(--err); }
+#out { margin-top:10px; }
+.line { padding:16px; margin:8px 0; background:var(--card); border-radius:12px; font-size:24px; line-height:1.6; border-right:4px solid transparent; transition:all .2s; }
+.line.active { background:var(--acc); border-right-color:var(--pri); transform:scale(1.01); }
+#stopBtn { position:fixed; bottom:20px; left:50%; transform:translateX(-50%); width:85%; max-width:350px; padding:14px; background:var(--err); border-radius:50px; text-align:center; font-weight:900; display:none; cursor:pointer; z-index:100; }
+#debug { position:fixed; top:60px; left:10px; right:10px; background:rgba(0,0,0,.85); padding:10px; border-radius:8px; font-size:13px; color:#aaa; display:none; z-index:90; max-height:150px; overflow:auto; }
+#status { position:fixed; top:10px; left:50%; transform:translateX(-50%); background:var(--ok); padding:8px 16px; border-radius:20px; font-size:14px; font-weight:700; display:none; z-index:101; }
 </style>
 </head>
 <body>
 
-<header>ReadAid</header>
-<div id="status">جاري المعالجة...</div>
+<header>ReadAid — قراءة مستقرة</header>
+<div id="status"></div>
+<div id="debug"></div>
 
 <div class="container">
   <textarea id="input" placeholder="الصق النص هنا أو شاركه من تطبيق آخر..."></textarea>
@@ -115,55 +40,42 @@ button.secondary { background: #2e7d32; }
   <div id="out"></div>
 </div>
 
-<div id="stopBtn">⏹️ إيقاف</div>
+<div id="stopBtn">️ إيقاف فوري</div>
 
 <script>
-// المتغيرات العامة
+// === الحالة العامة ===
 let isReading = false;
 let currentIdx = 0;
 let lines = [];
-
-// تنظيف صارم - حذف كل شيء إلا العربي والأرقام
-function cleanText(txt) {
-  if (!txt || typeof txt !== 'string') return '';
-  
-  // إزالة الروابط
-  let c = txt.replace(/https?:\/\/\S+/gi, '');
-  
-  // إزالة الإيموجي والرموز (نطاقات واسعة)
-  c = c.replace(/[\u{1F000}-\u{1FFFF}]/gu, '');
-  c = c.replace(/[\u{26000}-\u{26FFF}]/gu, '');
-  c = c.replace(/[\u{27000}-\u{27BFF}]/gu, '');
-  
-  // إزالة الرموز المخفية
-  c = c.replace(/[\uFE0E\uFE0F\u200D\u200B\u200C\u20E3]/g, '');
-  c = c.replace(/[\u{1F3FB}-\u{1F3FF}]/gu, '');
-  
-  // الاحتفاظ فقط بالعربية والأرقام والترقيم
-  c = c.replace(/[^\u0600-\u06FF\u0750-\u077F0-9\s\.\,\!\?\:\;\-\(\)]/g, '');
-  
-  // تنظيف المسافات
-  c = c.replace(/\s+/g, ' ').trim();
-  
-  return c;}
-
-// تقسيم النص
-function splitText(txt) {
-  if (!txt) return [];
-  return txt.split(/[\n\.!\?؟،]+/)
-    .map(s => cleanText(s))
-    .filter(s => s && s.length > 2);
+let voicesReady = false;
+// === ️ فلتر التنظيف الجراحي ️ ===
+function ultraClean(raw) {
+  if (!raw || typeof raw !== 'string') return '';
+  let txt = raw;
+  // 1. إزالة الروابط ووسوم HTML (تأتي أحياناً مع النصوص المشتركة)
+  txt = txt.replace(/https?:\/\/\S+/gi, '').replace(/<[^>]*>/g, '');
+  // 2. القائمة البيضاء الصارمة: عربي + أرقام + مسافات + ترقيم أساسي فقط
+  txt = txt.replace(/[^\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF0-9\s\.\,\!\?\:\;\-\(\)\'\"؟،؛]/g, '');
+  // 3. إزالة أحرف التحكم والصفرية التي تتسلل عبر الفلاتر العادية
+  txt = txt.replace(/[\u200B-\u200F\u202A-\u202E\u2060-\u2069\uFEFF\u00AD\u061C\uFE0E\uFE0F]/g, '');
+  // 4. توحيد المسافات وإزالة الأطراف
+  return txt.replace(/\s+/g, ' ').trim();
 }
 
-// تجهيز النص
+// === تقسيم النص إلى جمل ===
+function splitText(txt) {
+  if (!txt) return [];
+  return txt.split(/[\n\.!\?؟،;]+/)
+    .map(s => ultraClean(s))
+    .filter(s => s.length > 2); // تجاهل الشظايا غير الصالحة
+}
+
+// === تجهيز الواجهة ===
 function prepare() {
-  const input = document.getElementById('input').value;
-  if (!input || !input.trim()) {
-    showStatus('⚠️ أدخل نصاً أولاً', true);
-    return;
-  }
+  const raw = document.getElementById('input').value;
+  if (!raw.trim()) { showStatus('️ أدخل نصاً أولاً', true); return; }
   
-  const sentences = splitText(input);
+  const sentences = splitText(raw);
   const out = document.getElementById('out');
   out.innerHTML = '';
   stopReading();
@@ -179,37 +91,32 @@ function prepare() {
     div.className = 'line';
     div.textContent = s;
     div.dataset.idx = i;
-    div.onclick = function() {
-      stopReading();
-      currentIdx = i;
-      startReading();
-    };
+    div.onclick = () => { stopReading(); currentIdx = i; startSpeaking(); };
     out.appendChild(div);
   });
   
   lines = document.querySelectorAll('.line');
-  showStatus(`✅ تم تجهيز ${sentences.length} أسطر`, false);
-}
+  showStatus(`✅ جاهز: ${sentences.length} أسطر`, false);}
 
-// بدء القراءة
-function startReading() {
-  if (currentIdx >= lines.length) {
-    stopReading();    return;
-  }
+// === محرك النطق الآمن ===
+function startSpeaking() {
+  if (!isReading || currentIdx >= lines.length) { stopReading(); return; }
   
   isReading = true;
   document.getElementById('stopBtn').style.display = 'block';
   
+  // تحديث بصري
   lines.forEach(l => l.classList.remove('active'));
-  const current = lines[currentIdx];
-  current.classList.add('active');
-  current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  const cur = lines[currentIdx];
+  cur.classList.add('active');
+  cur.scrollIntoView({ behavior:'smooth', block:'center' });
   
-  const text = current.textContent;
+  const text = cur.textContent;
+  if (text.length < 2) { currentIdx++; setTimeout(startSpeaking, 50); return; }
   
-  if (!text || text.length < 2) {
-    currentIdx++;
-    setTimeout(startReading, 50);
+  // انتظار جاهزية الأصوات
+  if (!voicesReady) {
+    setTimeout(startSpeaking, 200);
     return;
   }
   
@@ -218,46 +125,34 @@ function startReading() {
   const utter = new SpeechSynthesisUtterance(text);
   utter.lang = 'ar-SA';
   utter.rate = 0.85;
+  utter.pitch = 1;
   
+  // اختيار صوت عربي محلي إن وجد
   const voices = window.speechSynthesis.getVoices();
-  const arVoice = voices.find(v => v.lang && v.lang.startsWith('ar'));
-  if (arVoice) utter.voice = arVoice;
+  const ar = voices.find(v => v.lang.startsWith('ar') && v.localService) || voices.find(v => v.lang.startsWith('ar'));
+  if (ar) utter.voice = ar;
   
-  utter.onend = function() {
-    if (isReading) {
-      currentIdx++;
-      setTimeout(startReading, 100);
-    }
-  };
-  
-  utter.onerror = function(e) {
-    console.error('Error:', e.error);
+  utter.onend = () => { if (isReading) { currentIdx++; setTimeout(startSpeaking, 100); } };
+  utter.onerror = (e) => {
+    console.warn('TTS Error:', e.error, '| Text:', text.substring(0,20));
     window.speechSynthesis.cancel();
-    if (isReading) {
-      currentIdx++;
-      setTimeout(startReading, 100);
-    }
+    if (isReading) { currentIdx++; setTimeout(startSpeaking, 150); }
   };
   
-  try {
-    window.speechSynthesis.speak(utter);
-  } catch(err) {
-    console.error('Speak error:', err);
-    currentIdx++;    setTimeout(startReading, 100);
-  }
+  try { window.speechSynthesis.speak(utter); } 
+  catch(err) { console.error(err); currentIdx++; setTimeout(startSpeaking, 150); }
 }
 
-// قراءة الكل
+// === قراءة الكل ===
 function readAll() {
-  if (lines.length === 0) prepare();
-  if (lines.length === 0) return;
-  
+  if (!lines.length) prepare();  if (!lines.length) return;
   stopReading();
   currentIdx = 0;
-  setTimeout(startReading, 100);
+  isReading = true;
+  setTimeout(startSpeaking, 150);
 }
 
-// إيقاف
+// === إيقاف ===
 function stopReading() {
   isReading = false;
   window.speechSynthesis.cancel();
@@ -265,85 +160,70 @@ function stopReading() {
   lines.forEach(l => l.classList.remove('active'));
 }
 
-// عرض حالة
-function showStatus(msg, isError) {
-  const status = document.getElementById('status');
-  status.textContent = msg;
-  status.style.background = isError ? 'rgba(211, 47, 47, 0.9)' : 'rgba(46, 125, 50, 0.9)';
-  status.style.display = 'block';
-  setTimeout(() => {
-    status.style.display = 'none';
-  }, 3000);
+// === واجهة الحالة ===
+function showStatus(msg, isErr) {
+  const el = document.getElementById('status');
+  el.textContent = msg;
+  el.style.background = isErr ? 'var(--err)' : 'var(--ok)';
+  el.style.display = 'block';
+  setTimeout(() => el.style.display = 'none', 3000);
 }
 
-// استقبال النص المشترك - معالجة محسنة
-function handleSharedText() {
+function showDebug(raw, clean) {
+  const el = document.getElementById('debug');
+  el.style.display = 'block';
+  el.innerHTML = `<b>📥 المستلم:</b> ${raw.substring(0,60)}...<br><b>🧼 بعد التنظيف:</b> ${clean.substring(0,60)}...`;
+  setTimeout(() => el.style.display = 'none', 5000);
+}
+
+// === 🔍 معالج المشاركة الذكي ===
+function handleSharedIntent() {
   const params = new URLSearchParams(window.location.search);
+  let shared = '';
   
-  // محاولة الحصول على النص من مصادر مختلفة
-  let sharedText = '';
-  
-  // المصادر المحتملة للنص المشترك
-  const possibleParams = ['text', 'share', 'content', 'title', 'url', 'shared'];
-  
-  for (let param of possibleParams) {
-    const val = params.get(param);
-    if (val) {
-      try {
-        sharedText = decodeURIComponent(val);
-        console.log(`✅ تم استلام النص من ${param}:`, sharedText.substring(0, 50));
-        break;      } catch(e) {
-        console.error('خطأ في فك التشفير:', e);
-      }
-    }
+  // البحث في جميع المعاملات الشائعة
+  for (let key of ['text','share','content','title','q','msg']) {
+    const val = params.get(key);
+    if (val) { try { shared = decodeURIComponent(val.replace(/\+/g, ' ')); break; } catch(e){} }
   }
   
-  // إذا لم نجد نصاً، جرب البحث في جميع المعاملات
-  if (!sharedText) {
-    params.forEach((value, key) => {
-      if (!sharedText && value && value.length > 10) {
-        try {
-          sharedText = decodeURIComponent(value);
-          console.log(`✅ تم استلام النص من ${key}:`, sharedText.substring(0, 50));
-        } catch(e) {}
-      }
-    });
+  // fallback: أخذ أول قيمة طويلة في الـ URL
+  if (!shared) {
+    params.forEach((v,k) => { if (!shared && v.length > 15) try { shared = decodeURIComponent(v.replace(/\+/g,' ')); } catch(e){} });
   }
   
-  // إذا وجدنا نصاً، ضعه في الحقل وابدأ
-  if (sharedText) {
-    document.getElementById('input').value = sharedText;
+  if (shared) {
+    document.getElementById('input').value = shared;
+    const cleaned = ultraClean(shared);    showDebug(shared, cleaned);
     showStatus('📥 تم استلام النص المشترك', false);
     
-    // انتظر قليلاً ثم جهز واقرأ
+    // تجهيز ثم قراءة بعد تأخير ضمان تحميل الأصوات والـ DOM
     setTimeout(() => {
       prepare();
-      if (lines.length > 0) {
-        setTimeout(readAll, 500);
-      }
+      if (lines.length > 0) setTimeout(readAll, 400);
     }, 300);
   }
 }
 
-// ربط الأحداث
-document.addEventListener('DOMContentLoaded', function() {
+// === التهيئة ===
+document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('prepareBtn').addEventListener('click', prepare);
   document.getElementById('readBtn').addEventListener('click', readAll);
   document.getElementById('stopBtn').addEventListener('click', stopReading);
   
-  // تحميل الأصوات
+  // مزامنة تحميل الأصوات
   if (window.speechSynthesis) {
-    window.speechSynthesis.getVoices();
+    const loadVoices = () => { voicesReady = true; console.log('✅ Voices loaded'); };
+    window.speechSynthesis.addEventListener('voiceschanged', loadVoices);
+    window.speechSynthesis.getVoices(); // استدعاء مبدئي
   }
   
-  // معالجة النص المشترك
-  handleSharedText();
+  handleSharedIntent();
 });
 
-// تسجيل Service Worker لـ PWA Share Target
-if ('serviceWorker' in navigator) {  navigator.serviceWorker.register('./sw.js').catch(() => {});
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js').catch(()=>{});
 }
 </script>
-
 </body>
 </html>
