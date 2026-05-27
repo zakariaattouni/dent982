@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>ReadAid - التحكم الصارم</title>
+<title>ReadAid - القراءة الآمنة</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#1e88e5">
 <style>
@@ -16,79 +16,18 @@
     --success-green: #10b981;
     --danger-red: #ef4444;
   }
-
-  body { 
-    background: var(--bg-main); 
-    color: #fff; 
-    font-family: system-ui, -apple-system, sans-serif; 
-    padding: 15px; 
-    margin: 0; 
-  }
-  
+  body { background: var(--bg-main); color: #fff; font-family: system-ui, sans-serif; padding: 15px; margin: 0; }
   h2 { text-align: center; color: #38bdf8; margin-top: 5px; margin-bottom: 15px; font-weight: 900; }
-  
-  .box { 
-    background: var(--bg-box); 
-    padding: 14px; 
-    border-radius: 12px; 
-    margin-bottom: 12px; 
-    border: 1px solid var(--border); 
-  }
-  
+  .box { background: var(--bg-box); padding: 14px; border-radius: 12px; margin-bottom: 12px; border: 1px solid var(--border); }
   label { display: block; font-size: 14px; color: var(--text-muted); margin-bottom: 6px; font-weight: bold; }
-  
-  textarea { 
-    width: 100%; 
-    height: 90px; 
-    background: #0b1220; 
-    color: #fff; 
-    border: 1px solid #475569; 
-    padding: 10px; 
-    border-radius: 8px; 
-    font-size: 16px; 
-    resize: none; 
-    direction: rtl; 
-    box-sizing: border-box;
-  }
-  
-  .clean-box textarea { 
-    color: #4ade80; 
-    border-color: #22c55e; 
-    font-size: 20px; 
-    font-weight: bold;
-    height: 120px;
-  }
-  
-  button { 
-    width: 100%; 
-    padding: 18px; 
-    font-size: 18px; 
-    font-weight: 900; 
-    border: none; 
-    border-radius: 12px; 
-    cursor: pointer; 
-    margin-top: 5px; 
-    transition: all 0.2s ease; 
-  }
-  
+  textarea { width: 100%; height: 90px; background: #0b1220; color: #fff; border: 1px solid #475569; padding: 10px; border-radius: 8px; font-size: 16px; resize: none; direction: rtl; box-sizing: border-box; }
+  .clean-box textarea { color: #4ade80; border-color: #22c55e; font-size: 20px; font-weight: bold; height: 120px; }
+  button { width: 100%; padding: 18px; font-size: 18px; font-weight: 900; border: none; border-radius: 12px; cursor: pointer; margin-top: 5px; transition: all 0.2s ease; }
   .btn-wait { background: #334155; color: var(--text-muted); cursor: not-allowed; }
-  .btn-prepare { background: var(--primary-blue); color: #fff; box-shadow: 0 4px 12px rgba(59,130,246,0.3); }
-  .btn-go { background: var(--success-green); color: #fff; box-shadow: 0 4px 15px rgba(16,185,129,0.4); }
+  .btn-prepare { background: var(--primary-blue); color: #fff; }
+  .btn-go { background: var(--success-green); color: #fff; }
   .btn-stop { background: var(--danger-red); color: #fff; display: none; }
-  
-  #log { 
-    background: #000; 
-    color: #4ade80; 
-    padding: 10px; 
-    border-radius: 8px; 
-    font-size: 12px; 
-    font-family: monospace; 
-    height: 80px; 
-    overflow: auto; 
-    white-space: pre-wrap; 
-    direction: ltr; 
-    text-align: left; 
-  }
+  #log { background: #000; color: #4ade80; padding: 10px; border-radius: 8px; font-size: 12px; font-family: monospace; height: 80px; overflow: auto; white-space: pre-wrap; direction: ltr; text-align: left; }
 </style>
 </head>
 <body>
@@ -114,26 +53,29 @@
 </div>
 
 <script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(err => console.log(err));
+  });
+}
+
 const rawIn = document.getElementById('rawInput');
 const cleanIn = document.getElementById('cleanInput');
 const btn = document.getElementById('actionBtn');
 const stopBtn = document.getElementById('stopBtn');
 const logBox = document.getElementById('log');
 
-// 0 = انتظار، 1 = جاهز للتنظيف، 2 = مجهز وجاهز للقراءة
 let appState = 0; 
-let hasProcessedShare = false; // حاجز أمان لمنع تكرار الاستقبال التلقائي
+let hasProcessedShare = false;
 
 function log(msg) {
   logBox.textContent = `[${new Date().toLocaleTimeString()}] ${msg}\n` + logBox.textContent;
 }
 
-// الفلتر النووي الصارم لحذف الإيموجي والرموز كلياً
 function nuclearClean(text) {
   if(!text) return '';
   let t = text;
   t = t.replace(/https?:\/\/\S+/gi, '').replace(/<[^>]*>/g, '');
-  // الإبقاء فقط على الحروف العربية والإنجليزية والأرقام وعلامات الترقيم الأساسية جداً
   t = t.replace(/[^\u0600-\u06FF\u0610-\u061A\u064B-\u0652A-Za-z0-9\s\.\،\!\؟]/g, ' ');
   t = t.replace(/[\u200B-\u200F\u202A-\u202E\u2060-\u2069\uFEFF\u00AD\u061C\uFE0E\uFE0F]/g, '');
   return t.replace(/\s+/g, ' ').trim();
@@ -143,20 +85,15 @@ function extractText() {
   const params = new URLSearchParams(window.location.search);
   let raw = '';
   const keys = ['text', 'share', 'title', 'content', 'q', 'msg', 'data'];
-  for(let k of keys) {
-    if(params.has(k)) { raw = params.get(k); break; }
-  }
+  for(let k of keys) { if(params.has(k)) { raw = params.get(k); break; } }
   if(!raw) {
-    for(let [k, v] of params.entries()) {
-      if(v.length > 10) { raw = v; break; }
-    }
+    for(let [k, v] of params.entries()) { if(v.length > 10) { raw = v; break; } }
   }
   return raw;
 }
 
-// استقبال النص لمرة واحدة فقط وبشكل صامت تماماً
 function checkIncomingShare() {
-  if (hasProcessedShare) return; // إذا تم الفحص مسبقاً، اخرج فوراً لمنع التداخل
+  if (hasProcessedShare) return;
   hasProcessedShare = true;
 
   const raw = extractText();
@@ -164,14 +101,14 @@ function checkIncomingShare() {
     try {
       const decoded = decodeURIComponent(raw.replace(/\+/g, ' '));
       rawIn.value = decoded;
-      log(`📥 تم استقبال النص الخام بنجاح. بانتظار أمر التجهيز من طرفك.`);
+      log(`📥 تم استقبال النص بنجاح. صامت تماماً وبانتظار ضغطة التجهيز.`);
       setButtonState(1); 
     } catch(e) {
       log(`❌ خطأ فك التشفير: ${e.message}`);
       setButtonState(1);
     }
   } else {
-    log(`ℹ️ لم يتم العثور على نص مشارك خارجي. يمكنك اللصق اليدوي.`);
+    log(`ℹ️ لم يتم رصد مشاركة خارجية. الكود مستعد للصق اليدوي.`);
     setButtonState(1); 
   }
 }
@@ -193,32 +130,19 @@ function setButtonState(state) {
   }
 }
 
-// معالجة الضغط اليدوي الصارم
 function handleAction() {
   if (appState === 1) {
-    // خطوة (1): تنظيف المحرك وهو صامت تماماً وتجهيز النص بصرياً
     if(window.speechSynthesis) window.speechSynthesis.cancel(); 
-    
     const rawText = rawIn.value.trim();
-    if(!rawText) {
-      log("⚠️ لا يوجد نص في الخانة الخام لتجهيزه!");
-      return;
-    }
+    if(!rawText) { log("⚠️ لا يوجد نص لتجهيزه!"); return; }
     
-    log("🧼 جاري تنظيف النص من الإيموجي والرموز...");
+    log("🧼 جاري تنظيف النص وعزل الرموز والإيموجيز...");
     const cleanedText = nuclearClean(rawText);
     cleanIn.value = cleanedText;
     
-    if(cleanedText.length < 2) {
-      log("❌ النص فارغ بعد التصفية الصارمة!");
-      return;
-    }
-    
-    log("✅ اكتمل التجهيز وعُزلت الرموز! يمكنك الضغط مجدداً لبدء القراءة بنقاء.");
-    setButtonState(2); // التجهيز تم بنجاح، ننتظر ضغطة القراءة
-    
+    log("✅ اكتمل الفرز! اضغط على الأخضر للقراءة الصافية.");
+    setButtonState(2); 
   } else if (appState === 2) {
-    // خطوة (2): القراءة الفعلية
     startReading();
   }
 }
@@ -229,7 +153,7 @@ function startReading() {
   
   btn.style.display = 'none';
   stopBtn.style.display = 'block';
-  log('🟢 بدأت القراءة الصوتية الآن للنص النقي...');
+  log('🟢 بدأت القراءة الآن...');
   
   if(window.speechSynthesis) window.speechSynthesis.cancel();
   
@@ -237,43 +161,26 @@ function startReading() {
   utter.lang = 'ar-SA';
   utter.rate = 0.83; 
   
-  utter.onend = () => {
-    log('✅ انتهت القراءة بنجاح تام وبدون رموز.');
-    stopReading();
-  };
+  utter.onend = () => { log('✅ انتهت القراءة بنجاح.'); stopReading(); };
+  utter.onerror = (e) => { log(`⚠️ تنبيه: ${e.error}`); stopReading(); };
   
-  utter.onerror = (e) => {
-    log(`⚠️ تنبيه المحرك: ${e.error}`);
-    stopReading();
-  };
-  
-  try {
-    window.speechSynthesis.speak(utter);
-  } catch(err) {
-    log(`💥 خطأ نظام: ${err.message}`);
-    stopReading();
-  }
+  try { window.speechSynthesis.speak(utter); } catch(err) { log(`💥 خطأ: ${err.message}`); stopReading(); }
 }
 
 function stopReading() {
   if(window.speechSynthesis) window.speechSynthesis.cancel();
-  setButtonState(1); // إعادة التعيين لوضع التجهيز لحماية المحرك من الرموز القادمة
-  log('⏹️ تم إيقاف وتصفير المحرك.');
+  setButtonState(1);
+  log('⏹️ تم إيقاف المحرك بنجاح.');
 }
 
 btn.addEventListener('click', handleAction);
 stopBtn.addEventListener('click', stopReading);
+rawIn.addEventListener('input', () => { if(appState !== 1) setButtonState(1); });
 
-rawIn.addEventListener('input', () => {
-  if(appState !== 1) setButtonState(1);
-});
-
-// التشغيل الأحادي المستقر عند التحميل فقط
 window.addEventListener('DOMContentLoaded', () => {
   if(window.speechSynthesis) window.speechSynthesis.cancel();
   checkIncomingShare();
 });
 </script>
-
 </body>
 </html>
