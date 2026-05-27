@@ -2,158 +2,202 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ReadAid - مستقر</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>ReadAid - الإعداد اليدوي</title>
 <style>
-  body { background: #0f172a; color: #fff; font-family: system-ui, sans-serif; margin: 0; padding: 20px; text-align: center; }
-  h2 { color: #38bdf8; margin-bottom: 15px; }
-  textarea { width: 100%; height: 100px; background: #1e293b; color: #fff; border: none; padding: 12px; font-size: 16px; border-radius: 8px; resize: none; margin-bottom: 10px; }
-  .btn { display: block; width: 100%; padding: 16px; margin: 8px 0; border: none; border-radius: 10px; font-size: 18px; font-weight: bold; cursor: pointer; color: #fff; transition: opacity 0.2s; }
-  .btn:active { opacity: 0.8; }
-  .btn-start { background: #10b981; }
-  .btn-stop { background: #ef4444; display: none; }
-  #log { text-align: left; font-family: monospace; font-size: 11px; color: #94a3b8; background: #000; padding: 10px; border-radius: 8px; height: 100px; overflow-y: auto; white-space: pre-wrap; direction: ltr; margin-top: 15px; }
-  .line { padding: 15px; background: #1e293b; margin: 8px 0; border-radius: 8px; font-size: 22px; border-right: 4px solid #334155; }
-  .line.active { background: #1e3a8a; border-right-color: #60a5fa; transform: scale(1.02); }
+  :root { --bg:#0b1220; --card:#1b2430; --pri:#1e88e5; --ok:#2e7d32; --err:#d32f2f; --txt:#fff; }
+  * { box-sizing: border-box; }
+  body { margin:0; padding:0; font-family:system-ui,-apple-system,sans-serif; background:var(--bg); color:var(--txt); min-height:100vh; display:flex; flex-direction:column; }
+  header { padding:16px; text-align:center; background:#111827; font-size:20px; font-weight:900; box-shadow:0 2px 10px rgba(0,0,0,.3); }
+  .container { padding:15px; flex:1; display:flex; flex-direction:column; gap:12px; margin-bottom:70px; }
+  textarea { width:100%; height:110px; padding:12px; font-size:16px; border:2px solid #2a3746; border-radius:12px; background:var(--card); color:var(--txt); resize:none; outline:none; }
+  textarea:focus { border-color:var(--pri); }
+  .btn { width:100%; padding:14px; font-size:17px; font-weight:800; border:none; border-radius:12px; cursor:pointer; transition:transform .1s, opacity .2s; color:#fff; }
+  .btn:active { transform:scale(.98); }
+  .btn:disabled { opacity:.5; cursor:not-allowed; }
+  .btn-pri { background:var(--pri); }
+  .btn-ok { background:var(--ok); }
+  .btn-err { background:var(--err); }
+  #out { margin-top:10px; }
+  .line { padding:15px; margin:8px 0; background:var(--card); border-radius:12px; font-size:22px; line-height:1.5; border-right:4px solid transparent; transition:all .2s; }
+  .line.active { background:var(--pri); border-right-color:#fff; transform:scale(1.02); }
+  #log { position:fixed; bottom:0; left:0; right:0; background:rgba(0,0,0,.9); padding:10px; font:12px monospace; color:#aaa; text-align:left; direction:ltr; max-height:120px; overflow:auto; z-index:100; display:none; }
+  #status { position:fixed; top:10px; left:50%; transform:translateX(-50%); background:var(--ok); padding:8px 16px; border-radius:20px; font-size:14px; font-weight:700; display:none; z-index:101; white-space:nowrap; }
 </style>
 </head>
 <body>
 
-<h2>ReadAid - قراءة مستقرة</h2>
+<header>ReadAid — وضع الإعداد اليدوي</header>
+<div id="status"></div>
 
-<textarea id="input" placeholder="النص سيظهر هنا عند المشاركة..."></textarea>
+<div class="container">
+  <textarea id="input" placeholder="النص المشترك سيظهر هنا تلقائياً..."></textarea>
+  
+  <button id="prepareBtn" class="btn btn-pri" disabled>🛠️ إعداد وتجهيز النص</button>
+  <button id="readBtn" class="btn btn-ok" style="display:none;">🔊 بدء القراءة</button>
+  <button id="stopBtn" class="btn btn-err" style="display:none;">⏹️ إيقاف فوري</button>
+  
+  <div id="out"></div>
+</div>
 
-<button class="btn btn-start" id="startBtn">🔊 اضغط هنا لبدء القراءة</button>
-<button class="btn btn-stop" id="stopBtn">⏹️ إيقاف</button>
-
-<div id="linesContainer"></div>
-<div id="log">بانتظار النص أو الضغطة...</div>
+<div id="log"></div>
 
 <script>
-  let isReading = false;
-  let sentences = [];
-  let currentIndex = 0;
-  let voicesReady = false;
+// === الحالة والمتغيرات ===
+let isReading = false;
+let currentIdx = 0;
+let lines = [];
+let voicesReady = false;
+// === دالة التنظيف الجراحية ===
+function cleanText(raw) {
+  if (!raw) return '';
+  let t = raw;
+  // 1. إزالة الروابط ووسوم HTML
+  t = t.replace(/https?:\/\/\S+/gi, '').replace(/<[^>]*>/g, '');
+  // 2. القائمة البيضاء الصارمة: عربي + أرقام + مسافات + ترقيم أساسي
+  t = t.replace(/[^\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF0-9\s\.\,\!\?\:\;\-\(\)\'\"؟،؛]/g, '');
+  // 3. إزالة أحرف التحكم والصفرية الخفية
+  t = t.replace(/[\u200B-\u200F\u202A-\u202E\u2060-\u2069\uFEFF\u00AD\u061C\uFE0E\uFE0F]/g, '');
+  // 4. توحيد المسافات
+  return t.replace(/\s+/g, ' ').trim();
+}
 
-  function log(msg) {
-    const el = document.getElementById('log');
-    el.textContent = msg + '\n' + el.textContent;
+// === واجهة الحالة والسجل ===
+function showStatus(msg, type='ok') {
+  const el = document.getElementById('status');
+  el.textContent = msg;
+  el.style.background = type === 'err' ? 'var(--err)' : 'var(--ok)';
+  el.style.display = 'block';
+  setTimeout(() => el.style.display = 'none', 3000);
+}
+function log(msg) {
+  const el = document.getElementById('log');
+  el.style.display = 'block';
+  el.textContent = `[${new Date().toLocaleTimeString()}] ${msg}\n` + el.textContent;
+}
+
+// === استقبال النص عند المشاركة ===
+function handleShare() {
+  const params = new URLSearchParams(location.search);
+  let raw = '';
+  // البحث في المعاملات الشائعة
+  for (let k of ['text','share','content','title','q']) {
+    const v = params.get(k);
+    if (v) { try { raw = decodeURIComponent(v.replace(/\+/g, ' ')); break; } catch(e){} }
   }
+  
+  if (raw) {
+    // تنظيف مبدئي للعرض
+    const cleaned = cleanText(raw);
+    document.getElementById('input').value = cleaned;
+    log(`📥 تم استلام النص (${raw.length} حرف) -> تنظيف -> (${cleaned.length} حرف)`);
+    showStatus('📥 تم استقبال النص. اضغط "تجهيز"');
+    document.getElementById('prepareBtn').disabled = false;
+  } else {
+    log('⚠️ لم يتم استقبال نص عبر المشاركة.');
+    document.getElementById('prepareBtn').disabled = false; // تفعيله للإدخال اليدوي
+  }}
 
-  // تنظيف صارم وسريع
-  function clean(text) {
-    if (!text) return '';
-    // يحذف كل شيء ما عدا العربي، الأرقام، المسافات، وعلامات الترقيم الأساسية
-    let t = text.replace(/[^\u0600-\u06FF0-9\s\.\,\!\?\:\;\-\(\)؟،؛]/g, '');
-    return t.replace(/\s+/g, ' ').trim();
-  }
-  function prepareUI() {
-    const raw = document.getElementById('input').value;
-    if (!raw.trim()) { log('⚠️ النص فارغ'); return false; }
-    
-    const text = clean(raw);
-    log('🧼 نص نظيف: ' + text.substring(0, 40) + '...');
-    
-    sentences = text.split(/[\n\.!؟]+/).map(s => s.trim()).filter(s => s.length > 2);
-    const container = document.getElementById('linesContainer');
-    container.innerHTML = '';
-    
-    sentences.forEach((s, i) => {
-      const div = document.createElement('div');
-      div.className = 'line';
-      div.id = 'l' + i;
-      div.textContent = s;
-      container.appendChild(div);
-    });
-    
-    log('✅ تم تجهيز ' + sentences.length + ' أسطر');
-    return sentences.length > 0;
-  }
-
-  function speakNext() {
-    if (!isReading || currentIndex >= sentences.length) {
-      stop();
-      return;
-    }
-
-    // تحديث الواجهة
-    document.querySelectorAll('.line').forEach(el => el.classList.remove('active'));
-    const currentEl = document.getElementById('l' + currentIndex);
-    if (currentEl) {
-      currentEl.classList.add('active');
-      currentEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-
-    const text = sentences[currentIndex];
-    log('🗣️ يقرأ: ' + text.substring(0, 30) + '...');
-
-    const utter = new SpeechSynthesisUtterance(text);
-    utter.lang = 'ar-SA';
-    utter.rate = 0.85;
-
-    // اختيار صوت عربي إن وجد
-    const voices = speechSynthesis.getVoices();
-    const arVoice = voices.find(v => v.lang.startsWith('ar'));
-    if (arVoice) utter.voice = arVoice;
-
-    utter.onend = () => {      if (isReading) { currentIndex++; speakNext(); }
-    };
-
-    utter.onerror = (e) => {
-      log('❌ خطأ في السطر: ' + e.error);
-      // تخطي السطر المعطل والمتابعة فوراً
-      currentIndex++;
-      setTimeout(speakNext, 200);
-    };
-
-    speechSynthesis.cancel();
-    speechSynthesis.speak(utter);
-  }
-
-  function start() {
-    if (!prepareUI()) return;
-    
-    isReading = true;
-    currentIndex = 0;
-    document.getElementById('startBtn').style.display = 'none';
-    document.getElementById('stopBtn').style.display = 'block';
-    log('🟢 بدأت القراءة...');
-    
-    // تأخير بسيط لضمان جاهزية المحرك
-    setTimeout(speakNext, 300);
-  }
-
-  function stop() {
-    isReading = false;
-    speechSynthesis.cancel();
-    document.getElementById('startBtn').style.display = 'block';
-    document.getElementById('stopBtn').style.display = 'none';
-    document.querySelectorAll('.line').forEach(el => el.classList.remove('active'));
-    log('⏹️ تم الإيقاف');
-  }
-
-  // التهيئة عند تحميل الصفحة
-  document.addEventListener('DOMContentLoaded', () => {
-    // 1. استقبال النص من المشاركة
-    const params = new URLSearchParams(location.search);
-    let shared = params.get('text') || params.get('share') || params.get('title') || '';
-    if (shared) {
-      try { shared = decodeURIComponent(shared.replace(/\+/g, ' ')); } catch(e){}
-      document.getElementById('input').value = shared;
-      log('📥 تم استقبال النص من المشاركة');
-      prepareUI();
-    }
-
-    // 2. تحميل الأصوات مسبقاً
-    if (window.speechSynthesis) {      const loadVoices = () => { voicesReady = true; log('🔊 الأصوات جاهزة'); };
-      window.speechSynthesis.addEventListener('voiceschanged', loadVoices);
-      window.speechSynthesis.getVoices();
-    }
-
-    // 3. ربط الأزرار
-    document.getElementById('startBtn').addEventListener('click', start);
-    document.getElementById('stopBtn').addEventListener('click', stop);
+// === زر الإعداد والتجهيز ===
+document.getElementById('prepareBtn').addEventListener('click', () => {
+  const raw = document.getElementById('input').value;
+  if (!raw.trim()) { showStatus('⚠️ المربع فارغ', 'err'); return; }
+  
+  const text = cleanText(raw);
+  if (!text || text.length < 3) { showStatus('⚠️ النص فارغ بعد التنظيف', 'err'); return; }
+  
+  // تقسيم وعرض الأسطر
+  lines = text.split(/[\n\.!؟؛]+/).map(s => s.trim()).filter(s => s.length > 2);
+  const out = document.getElementById('out');
+  out.innerHTML = '';
+  
+  lines.forEach((s, i) => {
+    const div = document.createElement('div');
+    div.className = 'line';
+    div.id = 'l' + i;
+    div.textContent = s;
+    out.appendChild(div);
   });
+  
+  log(`️ تم تجهيز ${lines.length} سطر للقراءة.`);
+  showStatus('✅ جاهز للقراءة');
+  
+  // تبديل الأزرار
+  document.getElementById('prepareBtn').style.display = 'none';
+  document.getElementById('readBtn').style.display = 'block';
+});
+
+// === محرك النطق الآمن ===
+function startReading() {
+  if (!lines.length) return;
+  isReading = true;
+  currentIdx = 0;
+  document.getElementById('readBtn').style.display = 'none';
+  document.getElementById('stopBtn').style.display = 'block';
+  log('🟢 بدأت القراءة...');
+  speakLine(currentIdx);
+}
+
+function speakLine(idx) {
+  if (!isReading || idx >= lines.length) { stopReading(); return; }
+  
+  // تمييز بصري
+  document.querySelectorAll('.line').forEach(el => el.classList.remove('active'));
+  const cur = document.getElementById('l' + idx);
+  if (cur) { cur.classList.add('active'); cur.scrollIntoView({behavior:'smooth', block:'center'}); }
+    const text = lines[idx];
+  log(`️ يقرأ السطر ${idx+1}/${lines.length}`);
+  
+  // إيقاف أي عملية سابقة
+  window.speechSynthesis.cancel();
+  
+  const utter = new SpeechSynthesisUtterance(text);
+  utter.lang = 'ar-SA';
+  utter.rate = 0.85;
+  utter.pitch = 1;
+  
+  // اختيار صوت عربي محلي إن وجد
+  const voices = window.speechSynthesis.getVoices();
+  const ar = voices.find(v => v.lang.startsWith('ar') && v.localService) || voices.find(v => v.lang.startsWith('ar'));
+  if (ar) utter.voice = ar;
+  
+  utter.onend = () => { if (isReading) { currentIdx++; setTimeout(() => speakLine(currentIdx), 150); } };
+  utter.onerror = (e) => {
+    log(`❌ خطأ في السطر ${idx+1}: ${e.error}`);
+    // تخطي السطر المعطل والمتابعة
+    if (isReading) { currentIdx++; setTimeout(() => speakLine(currentIdx), 200); }
+  };
+  
+  try { window.speechSynthesis.speak(utter); } 
+  catch(err) { log(`💥 خطأ فادح: ${err.message}`); stopReading(); }
+}
+
+function stopReading() {
+  isReading = false;
+  window.speechSynthesis.cancel();
+  document.querySelectorAll('.line').forEach(el => el.classList.remove('active'));
+  document.getElementById('readBtn').style.display = 'block';
+  document.getElementById('stopBtn').style.display = 'none';
+  log('⏹️ تم الإيقاف');
+}
+
+// === التهيئة ===
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('readBtn').addEventListener('click', startReading);
+  document.getElementById('stopBtn').addEventListener('click', stopReading);
+  
+  // مزامنة تحميل الأصوات
+  if (window.speechSynthesis) {
+    const onVoices = () => { voicesReady = true; log('🔊 أصوات المحرك جاهزة'); };
+    window.speechSynthesis.addEventListener('voiceschanged', onVoices);
+    window.speechSynthesis.getVoices();
+  }
+  
+  handleShare();
+});
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js').catch(()=>{});
+}
 </script>
 
 </body>
