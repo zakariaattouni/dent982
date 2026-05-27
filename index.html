@@ -2,72 +2,153 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ReadAid - الإصدار الحاسم</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>ReadAid - الإصدار الحاسم والمعتمد</title>
 <style>
-  body { background: #0f172a; color: #fff; font-family: system-ui; padding: 15px; margin: 0; }
-  h2 { text-align: center; color: #38bdf8; margin-bottom: 10px; }
+  :root {
+    --bg-main: #0f172a;
+    --bg-box: #1e293b;
+    --border: #334155;
+    --text-muted: #94a3b8;
+    --primary-blue: #3b82f6;
+    --success-green: #10b981;
+    --danger-red: #ef4444;
+  }
+
+  body { 
+    background: var(--bg-main); 
+    color: #fff; 
+    font-family: system-ui, -apple-system, sans-serif; 
+    padding: 15px; 
+    margin: 0; 
+  }
   
-  .box { background: #1e293b; padding: 12px; border-radius: 10px; margin-bottom: 12px; border: 1px solid #334155; }
-  label { display: block; font-size: 13px; color: #94a3b8; margin-bottom: 5px; }
-  textarea { width: 100%; height: 80px; background: #0b1220; color: #fff; border: 1px solid #475569; padding: 8px; border-radius: 6px; font-size: 15px; resize: none; direction: rtl; }
+  h2 { text-align: center; color: #38bdf8; margin-top: 5px; margin-bottom: 15px; font-weight: 900; }
   
-  .clean-box textarea { color: #4ade80; border-color: #22c55e; }
+  .box { 
+    background: var(--bg-box); 
+    padding: 14px; 
+    border-radius: 12px; 
+    margin-bottom: 12px; 
+    border: 1px solid var(--border); 
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  }
   
-  button { width: 100%; padding: 16px; font-size: 18px; font-weight: bold; border: none; border-radius: 10px; cursor: pointer; margin-top: 10px; transition: 0.2s; }
-  .btn-wait { background: #334155; color: #94a3b8; cursor: not-allowed; }
-  .btn-go { background: #10b981; color: #fff; box-shadow: 0 4px 15px rgba(16,185,129,0.4); }
-  .btn-stop { background: #ef4444; color: #fff; display: none; }
+  label { display: block; font-size: 14px; color: var(--text-muted); margin-bottom: 6px; font-weight: bold; }
   
-  #log { background: #000; color: #aaa; padding: 10px; border-radius: 8px; font-size: 12px; font-family: monospace; height: 120px; overflow: auto; white-space: pre-wrap; direction: ltr; text-align: left; }
+  textarea { 
+    width: 100%; 
+    height: 90px; 
+    background: #0b1220; 
+    color: #fff; 
+    border: 1px solid #475569; 
+    padding: 10px; 
+    border-radius: 8px; 
+    font-size: 16px; 
+    resize: none; 
+    direction: rtl; 
+    box-sizing: border-box;
+  }
+  
+  .clean-box textarea { 
+    color: #4ade80; 
+    border-color: #22c55e; 
+    font-size: 20px; /* خط أكبر ومريح لكبار السن */
+    font-weight: bold;
+    height: 120px;
+  }
+  
+  button { 
+    width: 100%; 
+    padding: 18px; 
+    font-size: 18px; 
+    font-weight: 900; 
+    border: none; 
+    border-radius: 12px; 
+    cursor: pointer; 
+    margin-top: 5px; 
+    transition: all 0.2s ease; 
+  }
+  
+  /* الحالات المتغيرة للزر الرئيسي بناءً على اقتراحك */
+  .btn-wait { background: #334155; color: var(--text-muted); cursor: not-allowed; }
+  .btn-prepare { background: var(--primary-blue); color: #fff; box-shadow: 0 4px 12px rgba(59,130,246,0.3); }
+  .btn-go { background: var(--success-green); color: #fff; box-shadow: 0 4px 15px rgba(16,185,129,0.4); }
+  .btn-stop { background: var(--danger-red); color: #fff; display: none; }
+  
+  #log { 
+    background: #000; 
+    color: #4ade80; 
+    padding: 10px; 
+    border-radius: 8px; 
+    font-size: 12px; 
+    font-family: monospace; 
+    height: 80px; 
+    overflow: auto; 
+    white-space: pre-wrap; 
+    direction: ltr; 
+    text-align: left; 
+  }
 </style>
 </head>
 <body>
 
-<h2>ReadAid - القراءة الآمنة</h2>
+<h2>ReadAid - القراءة الآمنة بنظام الفرز</h2>
 
 <div class="box">
-  <label>📥 النص المستلم (خام):</label>
-  <textarea id="rawInput" readonly placeholder="بانتظار المشاركة..."></textarea>
+  <label>📥 1. النص المستلم من المشاركة (خام):</label>
+  <textarea id="rawInput" placeholder="بانتظار استقبال النص من المشاركة أو الصقه هنا يدوياً..."></textarea>
 </div>
 
-<div class="box clean-box">
-  <label>🧼 النص المنظف (جاهز للقراءة):</label>
-  <textarea id="cleanInput" readonly placeholder="سيظهر هنا بعد التنظيف التلقائي..."></textarea>
-</div>
+<button id="actionBtn" class="btn-wait" disabled>⏳ بانتظار النص...</button>
+<button id="stopBtn" class="btn-stop">⏹️ إيقاف القراءة الصوتية</button>
 
-<button id="actionBtn" class="btn-wait" disabled> بانتظار النص...</button>
-<button id="stopBtn" class="btn-stop">⏹️ إيقاف</button>
+<div class="box clean-box" style="margin-top: 15px;">
+  <label>🧼 2. النص المصفى والمجهز (جاهز تماماً):</label>
+  <textarea id="cleanInput" readonly placeholder="سيظهر النص هنا نقياً ومقسماً بعد الضغط على زر التجهيز..."></textarea>
+</div>
 
 <div class="box">
-  <label>📜 سجل الأحداث (للمراجعة):</label>
-  <div id="log">جاهز...</div>
+  <label>📜 سجل فحص الأكواد والمحرك:</label>
+  <div id="log">النظام جاهز ومستعد...</div>
 </div>
 
 <script>
 const rawIn = document.getElementById('rawInput');
 const cleanIn = document.getElementById('cleanInput');
-const btn = document.getElementById('actionBtn');const stopBtn = document.getElementById('stopBtn');
+const btn = document.getElementById('actionBtn');
+const stopBtn = document.getElementById('stopBtn');
 const logBox = document.getElementById('log');
 
-let isReading = false;
+// حالات التطبيق: 0 = بانتظار نص، 1 = جاهز للتجهيز، 2 = مجهز وجاهز للقراءة
+let appState = 0; 
 
 function log(msg) {
   logBox.textContent = `[${new Date().toLocaleTimeString()}] ${msg}\n` + logBox.textContent;
 }
 
-// 1. استخراج النص من الرابط بأقصى قوة
+// تنظيف الرموز بشكل قطعي وصارم جداً
+function nuclearClean(text) {
+  if(!text) return '';
+  let t = text;
+  // حذف الروابط ووسوم الـ HTML
+  t = t.replace(/https?:\/\/\S+/gi, '').replace(/<[^>]*>/g, '');
+  // مصفاة الحروف العربية واللاتينية والأرقام والمسافات وعلامات الوقف الإنسانية الأساسية فقط
+  t = t.replace(/[^\u0600-\u06FF\u0610-\u061A\u064B-\u0652A-Za-z0-9\s\.\،\!\؟]/g, ' ');
+  // سحق الرموز الصفرية والمخفية تماماً
+  t = t.replace(/[\u200B-\u200F\u202A-\u202E\u2060-\u2069\uFEFF\u00AD\u061C\uFE0E\uFE0F]/g, '');
+  // إلغاء الفراغات المتكررة الناتجة عن حذف الرموز
+  return t.replace(/\s+/g, ' ').trim();
+}
+
+// استخراج النص المستلم من المشاركة بأمان
 function extractText() {
   const params = new URLSearchParams(window.location.search);
   let raw = '';
-  
-  // نجرب كل المفاتيح الشائعة
   const keys = ['text', 'share', 'title', 'content', 'q', 'msg', 'data'];
   for(let k of keys) {
     if(params.has(k)) { raw = params.get(k); break; }
   }
-  
-  // إذا فشل البحث المباشر، نأخذ أول قيمة طويلة في الرابط
   if(!raw) {
     for(let [k, v] of params.entries()) {
       if(v.length > 10) { raw = v; break; }
@@ -76,116 +157,123 @@ function extractText() {
   return raw;
 }
 
-// 2. الفلتر النووي (يحذف كل شيء إلا العربي والأرقام والترقيم)
-function nuclearClean(text) {
-  if(!text) return '';
-  let t = text;
-  // إزالة الروابط والوسوم
-  t = t.replace(/https?:\/\/\S+/gi, '').replace(/<[^>]*>/g, '');
-  // القائمة البيضاء الصارمة
-  t = t.replace(/[^\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF0-9\s\.\,\!\?\:\;\-\(\)؟،؛]/g, '');
-  // إزالة الرموز الخفية والصفرية
-  t = t.replace(/[\u200B-\u200F\u202A-\u202E\u2060-\u2069\uFEFF\u00AD\u061C\uFE0E\uFE0F]/g, '');
-  // توحيد المسافات
-  return t.replace(/\s+/g, ' ').trim();
+// استقبال المشاركة الصامت
+function checkIncomingShare() {
+  const raw = extractText();
+  if(raw) {
+    try {
+      const decoded = decodeURIComponent(raw.replace(/\+/g, ' '));
+      rawIn.value = decoded;
+      log(`📥 تم استقبال نص بنجاح (${decoded.length} حرف). خطوة (1) مكتملة.`);
+      setButtonState(1); // تحويل الزر لـ "تجهيز النص"
+    } catch(e) {
+      log(`❌ خطأ في فك تشفير الرابط: ${e.message}`);
+    }
+  } else {
+    log(`ℹ️ لم يتم مشاركة نص خارجي. يمكنك الكتابة أو اللصق اليدوي.`);
+    setButtonState(1); // تفعيل الزر ليعمل باللصق اليدوي أيضاً
+  }
 }
 
-// 3. معالجة الاستلام
-function processShare() {
-  const raw = extractText();
-  if(!raw) {
-    log('⚠️ لم يتم العثور على نص في الرابط.');
-    // السماح باللصق اليدوي كخطة بديلة
-    rawIn.removeAttribute('readonly');    rawIn.placeholder = "الصق النص هنا يدوياً ثم اضغط الزر";
-    btn.textContent = "🔊 تنظيف وقراءة";
+// التحكم بشكل ووظيفة الزر حسب مرحلة العمل
+function setButtonState(state) {
+  appState = state;
+  if(state === 1) {
+    btn.textContent = "🛠️ اضغط هنا لتجهيز وتصفية النص";
+    btn.className = "btn-prepare";
+    btn.disabled = false;
+  } else if(state === 2) {
+    btn.textContent = "🔊 ابدأ القراءة الصوتية الآن";
     btn.className = "btn-go";
     btn.disabled = false;
-    return;
   }
+}
 
-  try {
-    // فك التشفير
-    const decoded = decodeURIComponent(raw.replace(/\+/g, ' '));
-    rawIn.value = decoded;
-    log(` استلم: ${decoded.substring(0, 50)}...`);
+// الوظيفة المشتركة للزر حسب حالته الحالية
+function handleAction() {
+  if (appState === 1) {
+    // خطوة التجهيز والتنظيف قبل القراءة
+    if(window.speechSynthesis) window.speechSynthesis.cancel(); // تصفير كامل للمحرك وهو صامت
     
-    // تنظيف فوري وعرضه
-    const cleaned = nuclearClean(decoded);
-    cleanIn.value = cleaned;
-    log(`🧼 نظف إلى: ${cleaned}`);
-    
-    if(cleaned.length < 3) {
-      log('❌ النص أصبح فارغاً بعد التنظيف!');
-      btn.textContent = "⚠️ النص غير صالح";
-      btn.className = "btn-wait";
-      btn.disabled = true;
+    const rawText = rawIn.value.trim();
+    if(!rawText) {
+      log("⚠️ الرجاء كتابة أو لصق نص أولاً!");
       return;
     }
-
-    // تفعيل زر القراءة
-    btn.textContent = " قراءة النص المنظف";
-    btn.className = "btn-go";
-    btn.disabled = false;
-    log('✅ جاهز. اضغط الزر الأخضر للقراءة.');
     
-  } catch(e) {
-    log(`❌ خطأ معالجة: ${e.message}`);
+    log("🧼 جاري تشغيل الفلتر النووي لعزل الرموز والإيموجي...");
+    const cleanedText = nuclearClean(rawText);
+    cleanIn.value = cleanedText;
+    
+    if(cleanedText.length < 2) {
+      log("❌ النص فارغ تماماً بعد التصفية! قد يحتوي على رموز تعبيرية فقط.");
+      return;
+    }
+    
+    log("✅ تم التنظيف والتجهيز بنجاح! الرموز عُزلت تماماً.");
+    setButtonState(2); // تحويل الزر إلى "ابدأ القراءة"
+    
+  } else if (appState === 2) {
+    // خطوة بدء القراءة الفعلية للنص النظيف والمستقر
+    startReading();
   }
 }
 
-// 4. محرك القراءة (يعمل فقط عند الضغطة)
+// تشغيل محرك النطق للنص النقي بنسبة 100%
 function startReading() {
   const text = cleanIn.value.trim();
   if(!text) return;
   
-  isReading = true;
   btn.style.display = 'none';
   stopBtn.style.display = 'block';
-  log('🟢 بدأت القراءة...');
+  log('🟢 بدأت القراءة الصوتية للنص المصفى...');
   
-  // إيقاف أي شيء عالق
   if(window.speechSynthesis) window.speechSynthesis.cancel();
-    const utter = new SpeechSynthesisUtterance(text);
+  
+  const utter = new SpeechSynthesisUtterance(text);
   utter.lang = 'ar-SA';
-  utter.rate = 0.85;
+  utter.rate = 0.83; // سرعة هادئة ومريحة للمسن
   
   utter.onend = () => {
-    log('✅ انتهت القراءة بنجاح');
+    log('✅ انتهت قراءة النص بالكامل بنجاح مذهل.');
     stopReading();
   };
   
   utter.onerror = (e) => {
-    log(`❌ فشل المحرك: ${e.error}`);
+    log(`⚠️ تنبيه من المحرك: ${e.error}`);
     stopReading();
   };
   
   try {
     window.speechSynthesis.speak(utter);
   } catch(err) {
-    log(`💥 خطأ نظام: ${err.message}`);
+    log(`💥 خطأ في النظام: ${err.message}`);
     stopReading();
   }
 }
 
 function stopReading() {
-  isReading = false;
   if(window.speechSynthesis) window.speechSynthesis.cancel();
   btn.style.display = 'block';
   stopBtn.style.display = 'none';
-  log('⏹️ تم الإيقاف');
+  setButtonState(1); // إعادة التطبيق لوضع الاستعداد التجهيزي
+  log('⏹️ تم إيقاف وتصفير المحرك بنجاح.');
 }
 
-// ربط الأحداث
-btn.addEventListener('click', startReading);
+// مستمعي الأحداث والروابط للزر
+btn.addEventListener('click', handleAction);
 stopBtn.addEventListener('click', stopReading);
 
-// تشغيل عند الفتح وعند العودة للواجهة
-window.addEventListener('DOMContentLoaded', processShare);
-window.addEventListener('focus', processShare);
-window.addEventListener('pageshow', processShare);
+// مراقبة كتابة النص يدوياً لتحديث حالة الزر فوراً
+rawIn.addEventListener('input', () => {
+  if(appState !== 1) setButtonState(1);
+});
 
-// تنظيف مسبق عند التحميل لمنع القراءة العشوائية
-if(window.speechSynthesis) window.speechSynthesis.cancel();
+// التشغيل المستقر عند فتح التطبيق
+window.addEventListener('DOMContentLoaded', () => {
+  if(window.speechSynthesis) window.speechSynthesis.cancel();
+  checkIncomingShare();
+});
 </script>
 
 </body>
