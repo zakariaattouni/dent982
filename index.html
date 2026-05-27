@@ -47,8 +47,7 @@
       width: 100%;
       padding: 24px;
       font-size: 36px;
-      font-weight: bold;
-      border-radius: 80px;
+      font-weight: bold;      border-radius: 80px;
       color: white;
       cursor: pointer;
       box-shadow: 0 8px 0 #1b5e20;
@@ -86,11 +85,18 @@
       color: #aaa;
       margin-top: 20px;
     }
+    /* تأثير وميض بسيط عند التنظيف */
+    .cleaning {
+      animation: pulse 0.3s ease-in-out;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
   </style>
 </head>
 <body>
-<div class="header">🔊 ReadAid</div>
-<textarea id="textInput" placeholder="سيظهر النص المشارك هنا تلقائياً... أو اكتب/الصق النص يدوياً"></textarea>
+<div class="header">🔊 ReadAid</div><textarea id="textInput" placeholder="سيظهر النص المشارك هنا تلقائياً... أو اكتب/الصق النص يدوياً"></textarea>
 <button id="readBtn" class="read-btn">🔊 اقرأ النص</button>
 <button id="stopBtn" class="stop-btn">⏹️ إيقاف القراءة</button>
 <div id="status" class="status">✅ اضغط الزر لقراءة النص (يتم إزالة الإيموجي والرموز تلقائياً)</div>
@@ -104,21 +110,42 @@
   let isReading = false;
   let currentUtterance = null;
 
+  // 🎯 الدالة المحسنة: تنظيف النص للإلقاء الصوتي
   function cleanTextForSpeech(text) {
     if (!text) return '';
-    let cleaned = text.replace(/https?:\/\/\S+/gi, '').replace(/www\.\S+/gi, '');
-    cleaned = cleaned.replace(/[^\u0600-\u06FF\u0610-\u061A\u064B-\u065F\u0670a-zA-Z0-9\s\.,!?؟،؛]/g, '');
+    
+    // 1. إزالة الروابط (قبل أي معالجة أخرى)
+    let cleaned = text.replace(/https?:\/\/\S+/gi, '')
+                      .replace(/www\.\S+/gi, '');
+    
+    // 2. الفلتر الذكي: نحتفظ فقط بالأحرف والأرقام وعلامات الترقيم المفيدة
+    // ⚠️ حرف 'u' في النهاية ضروري جداً للتعامل الصحيح مع الإيموجي (Unicode code points)
+    // النطاقات:
+    // \u0600-\u06FF : العربية الأساسية
+    // \u0750-\u077F : العربية الممتدة (لللهجات)
+    // \u08A0-\u08FF : العربية الإضافية
+    // \uFB50-\uFDCF\uFDF0-\uFDFF\uFE70-\uFEFF : أشكال العرض العربية
+    // a-zA-Z0-9 : الإنجليزية والأرقام
+    // \s\.,!?؟،؛:;\-\(\)'" : علامات الترقيم المدعومة
+    cleaned = cleaned.replace(/[^\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDCF\uFDF0-\uFDFF\uFE70-\uFEFFa-zA-Z0-9\s\.,!?؟،؛:;\-\(\)'""]/gu, '');
+    
+    // 3. توحيد المسافات وإزالة الزوائد
     cleaned = cleaned.replace(/\s+/g, ' ').trim();
+    
     return cleaned;
   }
 
   function showStatus(msg, isError = false) {
     statusDiv.innerText = msg;
     statusDiv.style.background = isError ? "#a22" : "#00000099";
+    statusDiv.classList.remove('cleaning');
+    void statusDiv.offsetWidth; // إعادة تعيين الأنيميشن
+    statusDiv.classList.add('cleaning');
     setTimeout(() => {
-      if (statusDiv.innerText === msg)
+      if (statusDiv.innerText === msg) {
         statusDiv.style.background = "#00000099";
-    }, 3000);
+        statusDiv.classList.remove('cleaning');
+      }    }, 3000);
   }
 
   function stopReading() {
@@ -137,34 +164,52 @@
       showStatus("⚠️ لا يوجد نص. أرسل نصاً أو اكتبه أولاً.", true);
       return;
     }
-    const clean = cleanTextForSpeech(rawText);
-    if (!clean) {
-      showStatus("❌ بعد إزالة الرموز لم يبقَ نص صالح. تأكد من وجود أحرف عربية أو إنجليزية.", true);
-      return;
-    }
-    stopReading(); // إيقاف أي قراءة سابقة
-    currentUtterance = new SpeechSynthesisUtterance(clean);
-    currentUtterance.lang = "ar-SA";
-    currentUtterance.rate = 0.85;
-    currentUtterance.onstart = () => {
-      isReading = true;
-      stopBtn.style.display = 'block';
-      readBtn.style.display = 'none';
-      showStatus("🔊 جارٍ القراءة...");
-    };
-    currentUtterance.onend = () => {
-      isReading = false;
-      stopBtn.style.display = 'none';
-      readBtn.style.display = 'block';
-      showStatus("✅ انتهت القراءة");
-    };
-    currentUtterance.onerror = () => {
-      isReading = false;
-      stopBtn.style.display = 'none';
-      readBtn.style.display = 'block';
-      showStatus("⚠️ خطأ في النطق، حاول مرة أخرى", true);
-    };
-    speechSynthesis.speak(currentUtterance);
+    
+    // مؤشر تنظيف النص
+    showStatus("🧹 جاري تنظيف النص من الرموز...");
+    
+    setTimeout(() => {
+      const clean = cleanTextForSpeech(rawText);
+      
+      if (!clean) {
+        showStatus("❌ بعد إزالة الرموز لم يبقَ نص صالح. تأكد من وجود أحرف عربية أو إنجليزية.", true);
+        return;
+      }
+      
+      // عرض معاينة سريعة للنص المنظف (اختياري - يمكن إزالته)
+      console.log("📝 النص الأصلي:", rawText.substring(0, 100) + "...");
+      console.log("✨ النص المنظف:", clean.substring(0, 100) + "...");
+      
+      stopReading(); // إيقاف أي قراءة سابقة
+      
+      currentUtterance = new SpeechSynthesisUtterance(clean);
+      currentUtterance.lang = "ar-SA";
+      currentUtterance.rate = 0.85;
+      currentUtterance.pitch = 1.0;
+      
+      currentUtterance.onstart = () => {
+        isReading = true;
+        stopBtn.style.display = 'block';
+        readBtn.style.display = 'none';
+        showStatus("🔊 جارٍ القراءة: " + clean.substring(0, 30) + "...");
+      };
+      
+      currentUtterance.onend = () => {        isReading = false;
+        stopBtn.style.display = 'none';
+        readBtn.style.display = 'block';
+        showStatus("✅ انتهت القراءة");
+      };
+      
+      currentUtterance.onerror = (e) => {
+        isReading = false;
+        stopBtn.style.display = 'none';
+        readBtn.style.display = 'block';
+        console.error("❌ خطأ في النطق:", e);
+        showStatus("⚠️ خطأ في النطق، حاول مرة أخرى", true);
+      };
+      
+      speechSynthesis.speak(currentUtterance);
+    }, 200); // تأخير بسيط لإظهار تأثير التنظيف
   }
 
   // استقبال النص من المشاركة (عبر ?text=...)
@@ -175,18 +220,18 @@
       shared = decodeURIComponent(shared);
       textarea.value = shared;
       showStatus("📥 تم استلام النص. اضغط زر 'اقرأ النص'.");
-      // حفظ في localStorage للجلسات القادمة
       localStorage.setItem('readaid_last', shared);
     } else {
       // استعادة آخر نص إذا وجد
       const last = localStorage.getItem('readaid_last');
-      if (last && !textarea.value) {
+      if (last && !textarea.value.trim()) {
         textarea.value = last;
         showStatus("📄 آخر نص مستخدم. يمكنك تعديله ثم القراءة.");
       }
     }
   }
 
+  // أزرار التحكم
   readBtn.onclick = startReading;
   stopBtn.onclick = stopReading;
 
@@ -195,7 +240,25 @@
     localStorage.setItem('readaid_last', textarea.value);
   });
 
-  window.addEventListener('load', getSharedText);
+  // دعم اختصار لوحة المفاتيح
+  document.addEventListener('keydown', (e) => {
+    if (e.ctrlKey && e.key === 'Enter') {
+      e.preventDefault();      isReading ? stopReading() : startReading();
+    }
+    if (e.key === 'Escape' && isReading) {
+      stopReading();
+    }
+  });
+
+  // التأكد من دعم المتصفح لـ SpeechSynthesis
+  window.addEventListener('load', () => {
+    getSharedText();
+    if (!('speechSynthesis' in window)) {
+      showStatus("⚠️ متصفحك لا يدعم القراءة الصوتية. جرب Chrome أو Edge.", true);
+      readBtn.disabled = true;
+      readBtn.style.opacity = "0.5";
+    }
+  });
 </script>
 </body>
 </html>
