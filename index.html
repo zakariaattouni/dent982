@@ -2,313 +2,177 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ReadAid - نسخة التشخيص</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>ReadAid - قارئ عالمي</title>
   <style>
+    :root { --bg: #0b1220; --card: #111827; --border: #2a3746; --green: #22c55e; --red: #ef4444; --blue: #3b82f6; }
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: system-ui, 'Segoe UI', sans-serif;
-      background: #0f172a;
-      color: #fff;
-      padding: 16px;
-      line-height: 1.6;
-    }
-    .container { max-width: 700px; margin: 0 auto; }
-    h1 { text-align: center; padding: 20px; background: #1e293b; border-radius: 16px; margin-bottom: 20px; }
-    
-    textarea {
-      width: 100%;
-      height: 150px;
-      background: #1e293b;
-      border: 2px solid #334155;
-      border-radius: 12px;
-      padding: 14px;
-      font-size: 18px;
-      color: #fff;
-      resize: vertical;
-      margin-bottom: 12px;
-    }
-    
-    .btn {
-      width: 100%;
-      padding: 18px;
-      font-size: 22px;
-      font-weight: bold;
-      border: none;
-      border-radius: 50px;
-      cursor: pointer;
-      margin-bottom: 10px;
-      transition: 0.1s;
-    }
-    .btn-read { background: #22c55e; color: #fff; }
-    .btn-read:active { transform: translateY(2px); }
-    .btn-stop { background: #ef4444; color: #fff; display: none; }
-    .btn-debug { background: #64748b; color: #fff; font-size: 16px; padding: 12px; border-radius: 12px; }
-    
-    .status {
-      background: #1e293b;
-      padding: 12px;      border-radius: 12px;
-      text-align: center;
-      margin: 10px 0;
-      min-height: 24px;
-    }
-    
-    .debug-panel {
-      background: #0b1220;
-      border-radius: 12px;
-      padding: 14px;
-      margin-top: 15px;
-      display: none;
-      font-family: monospace;
-      font-size: 13px;
-      direction: ltr;
-      text-align: left;
-      white-space: pre-wrap;
-      max-height: 300px;
-      overflow-y: auto;
-    }
-    .debug-panel.show { display: block; }
-    .debug-row { margin: 8px 0; padding: 8px; background: #1e293b; border-radius: 8px; }
-    .debug-label { color: #94a3b8; }
-    .debug-value { color: #22c55e; word-break: break-all; }
-    .debug-value.empty { color: #ef4444; }
-    
-    .tip {
-      background: #1e3a5f;
-      padding: 12px;
-      border-radius: 12px;
-      font-size: 14px;
-      margin-top: 20px;
-      border-right: 4px solid #3b82f6;
-    }
+    body { background: var(--bg); color: #fff; font-family: system-ui, 'Segoe UI', sans-serif; padding: 16px; min-height: 100vh; display: flex; flex-direction: column; align-items: center; }
+    .container { width: 100%; max-width: 650px; }
+    h1 { text-align: center; padding: 18px; background: var(--card); border-radius: 22px; margin-bottom: 18px; font-size: 26px; box-shadow: 0 4px 12px #0005; }
+    textarea { width: 100%; height: 160px; background: #1b2430; border: 2px solid var(--border); border-radius: 18px; padding: 16px; font-size: 18px; color: #fff; resize: vertical; margin-bottom: 14px; line-height: 1.7; }
+    .btn-row { display: flex; gap: 10px; margin-bottom: 12px; }
+    .btn { flex: 1; padding: 16px; font-size: 19px; font-weight: bold; border: none; border-radius: 16px; cursor: pointer; transition: 0.1s; }
+    .btn:active { transform: translateY(2px); }
+    .btn-read { background: var(--green); color: #fff; }
+    .btn-stop { background: var(--red); color: #fff; display: none; }
+    .btn-paste { background: var(--blue); color: #fff; }
+    .btn-debug { background: #4b5563; color: #fff; font-size: 14px; padding: 12px; }
+    .status { background: var(--card); padding: 14px; border-radius: 16px; text-align: center; margin: 12px 0; min-height: 24px; font-size: 16px; transition: 0.3s; }
+    .debug { background: #0f172a; border-radius: 16px; padding: 14px; font-family: monospace; font-size: 12px; direction: ltr; text-align: left; display: none; max-height: 200px; overflow-y: auto; white-space: pre-wrap; margin-top: 12px; border: 1px solid var(--border); }
+    .debug.show { display: block; }
+    .info { font-size: 13px; color: #94a3b8; text-align: center; margin-top: 18px; line-height: 1.6; }
+    .badge { display: inline-block; background: #1e3a5f; padding: 4px 8px; border-radius: 6px; font-size: 11px; margin-top: 6px; }
   </style>
 </head>
 <body>
 <div class="container">
-  <h1>🔊 ReadAid - تشخيص</h1>
+  <h1>🔊 ReadAid</h1>
+  <textarea id="txt" placeholder="الصق هنا، أو شارك النص من أي تطبيق..."></textarea>
   
-  <textarea id="txt" placeholder="📋 الصق النص هنا ثم اضغط 'اقرأ'"></textarea>
-  
-  <button id="btnRead" class="btn btn-read">🔊 اقرأ النص</button>
-  <button id="btnStop" class="btn btn-stop">⏹️ إيقاف</button>
-  <button id="btnDebug" class="btn btn-debug">🔍 عرض التشخيص</button>
-  
-  <div id="status" class="status">✅ جاهز</div>
-  
-  <div id="debug" class="debug-panel">
-    <div class="debug-row">      <div class="debug-label">📥 النص الأصلي (الطول: <span id="lenRaw">0</span>):</div>
-      <div id="raw" class="debug-value"></div>
-    </div>
-    <div class="debug-row">
-      <div class="debug-label">✨ النص بعد التنظيف (الطول: <span id="lenClean">0</span>):</div>
-      <div id="clean" class="debug-value"></div>
-    </div>
-    <div class="debug-row">
-      <div class="debug-label">🔤 أحرف عربية موجودة:</div>
-      <div id="arabicCheck" class="debug-value"></div>
-    </div>
-    <div class="debug-row">
-      <div class="debug-label">⚙️ حالة الصوت:</div>
-      <div id="speechCheck" class="debug-value"></div>
-    </div>
+  <div class="btn-row">
+    <button id="btnRead" class="btn btn-read">🔊 اقرأ النص</button>
+    <button id="btnStop" class="btn btn-stop">⏹️ إيقاف</button>
   </div>
-  
-  <div class="tip">
-    💡 <strong>ملاحظة مهمة:</strong> إذا لم يعمل الصوت، جرب الضغط على الزر مرتين، أو تأكد أن صوت الجهاز غير مكتوم.
+  <div class="btn-row">
+    <button id="btnPaste" class="btn btn-paste">📋 لصق ذكي</button>
+    <button id="btnDebug" class="btn btn-debug">🔍 تشخيص</button>
+  </div>
+
+  <div id="status" class="status">✅ جاهز لقراءة أي نص من أي مصدر</div>
+  <div id="debugBox" class="debug"></div>
+  <div class="info">
+    🛡️ يزيل تلقائياً: إيموجي، رموز، روابط، تنسيقات واتساب/فيسبوك، أحرف خفية من الملاحظات.<br>
+    <span class="badge">فلترة بيضاء صارمة → أحرف + أرقام + ترقيم فقط</span>
   </div>
 </div>
 
-<script>
-  const txt = document.getElementById('txt');
+<script>  const txt = document.getElementById('txt');
   const btnRead = document.getElementById('btnRead');
   const btnStop = document.getElementById('btnStop');
+  const btnPaste = document.getElementById('btnPaste');
   const btnDebug = document.getElementById('btnDebug');
   const status = document.getElementById('status');
-  const debug = document.getElementById('debug');
-  
-  // عناصر التشخيص
-  const rawEl = document.getElementById('raw');
-  const cleanEl = document.getElementById('clean');
-  const lenRaw = document.getElementById('lenRaw');
-  const lenClean = document.getElementById('lenClean');
-  const arabicCheck = document.getElementById('arabicCheck');
-  const speechCheck = document.getElementById('speechCheck');
-  
-  let utterance = null;
-  let isReading = false;
+  const debugBox = document.getElementById('debugBox');
+  let isReading = false, utterance = null;
 
-  // ✅ دالة التنظيف البسيطة والموثوقة
-  function cleanText(input) {
-    if (!input) return '';
-    
-    // نحول النص إلى مصفوفة أحرف (للتعامل الصحيح مع الإيموجي)
-    const chars = [...input];
-    
-    // نحتفظ فقط بالأحرف المسموحة
-    const allowed = chars.filter(char => {      const code = char.codePointAt(0);
-      // نسمح بـ:
-      // - العربية: 0600-06FF
-      // - اللاتينية: A-Z a-z
-      // - الأرقام: 0-9
-      // - المسافة وعلامات الترقيم الأساسية
-      if (code >= 0x0600 && code <= 0x06FF) return true; // عربي
-      if (/[a-zA-Z0-9\s\.,!?؟،؛:;\-\(\)'""]/u.test(char)) return true; // أساسي
-      return false; // أي شيء آخر يُحذف
-    });
-    
-    // نجمع الأحرف وننظف المسافات
-    return allowed.join('').replace(/\s+/g, ' ').trim();
-  }
+  // 🛡️ الدالة النووية: تنظيف عالمي مضمون
+  function cleanUniversalText(raw) {
+    if (!raw) return '';
+    let text = raw;
 
-  // 🔍 دالة التشخيص
-  function runDiagnostics(text) {
-    const cleaned = cleanText(text);
-    
-    rawEl.textContent = text || '(فارغ)';
-    cleanEl.textContent = cleaned || '(فارغ - سيتم حذف كل النص!)';
-    cleanEl.className = cleaned ? 'debug-value' : 'debug-value empty';
-    
-    lenRaw.textContent = text.length;
-    lenClean.textContent = cleaned.length;
-    
-    // هل يوجد نص عربي؟
-    const hasArabic = /[\u0600-\u06FF]/.test(text);
-    arabicCheck.textContent = hasArabic ? '✅ نعم' : '❌ لا';
-    arabicCheck.className = hasArabic ? 'debug-value' : 'debug-value empty';
-    
-    // حالة محرك الصوت
-    const speechOK = 'speechSynthesis' in window;
-    speechCheck.textContent = speechOK 
-      ? `✅ مدعوم | الأصوات المتاحة: ${speechSynthesis.getVoices?.().length || 0}`
-      : '❌ غير مدعوم في هذا المتصفح';
-    speechCheck.className = speechOK ? 'debug-value' : 'debug-value empty';
-    
-    return cleaned;
+    // 1️⃣ فك الترميز المتعدد (يتعامل مع روابط المشاركة المشفرة)
+    try { for(let i=0; i<3; i++) text = decodeURIComponent(text); } catch(e) {}
+
+    // 2️⃣ تجريد HTML وعلامات Markdown الشائعة
+    text = text.replace(/<[^>]+>/g, ' ').replace(/[*_~`#>]/g, '');
+
+    // 3️⃣ توحيد اليونيكد (يدمج التشكيل مع الحروف بشكل صحيح)
+    text = text.normalize('NFC');
+
+    // 4️⃣ الفلترة البيضاء الصارمة (الطريقة الوحيدة المضمونة عالمياً)
+    const allowed = [];
+    for (const char of text) {
+      const code = char.codePointAt(0);
+      const isArabic = (code >= 0x0600 && code <= 0x06FF) || (code >= 0x0610 && code <= 0x061A) || 
+                       (code >= 0x064B && code <= 0x065F) || code === 0x0670 || 
+                       (code >= 0x0750 && code <= 0x077F) || (code >= 0x08A0 && code <= 0x08FF) || 
+                       (code >= 0xFB50 && code <= 0xFDFF) || (code >= 0xFE70 && code <= 0xFEFF);
+      const isLatin  = (code >= 0x0041 && code <= 0x005A) || (code >= 0x0061 && code <= 0x007A);
+      const isDigit  = (code >= 0x0030 && code <= 0x0039);
+      const isPunct  = [0x0020, 0x000A, 0x000D, 0x002E, 0x002C, 0x0021, 0x003F, 0x061F, 0x060C, 0x061B, 0x003A, 0x002D, 0x0028, 0x0029, 0x0027, 0x0022, 0x002F, 0x0040].includes(code);
+      
+      if (isArabic || isLatin || isDigit || isPunct) allowed.push(char);
+    }
+
+    // 5️⃣ تنظيف المسافات وعلامات الترقيم
+    return allowed.join('').replace(/\s+/g, ' ').trim()
+      .replace(/\s+([.,!?؟،؛:;\/@])/g, '$1')
+      .replace(/([.,!?؟،؛:;\/@])\s*/g, '$1 ');
   }
 
   function setStatus(msg, type = 'info') {
     status.textContent = msg;
-    status.style.background = type === 'error' ? '#7f1d1d' : '#1e293b';
+    status.style.background = type === 'error' ? '#7f1d1d' : '#111827';
+    if (type === 'success') setTimeout(() => status.style.background = '#111827', 3000);
+  }
+  function runDebug(original, cleaned) {
+    const stats = `📥 أصل: ${original.length} حرف\n✨ بعد التنظيف: ${cleaned.length} حرف\n🔤 عربي؟ ${/[\u0600-\u06FF]/.test(cleaned) ? '✅ نعم' : '❌ لا'}\n⚙️ صوت؟ ${'speechSynthesis' in window ? '✅ مدعوم' : '❌ غير مدعوم'}\n📝 عينة: "${cleaned.substring(0, 60)}${cleaned.length > 60 ? '...' : ''}"`;
+    debugBox.textContent = stats;
+    debugBox.classList.add('show');
   }
 
   function stopSpeech() {
-    if (speechSynthesis.speaking || speechSynthesis.pending) {
-      speechSynthesis.cancel();
-    }    isReading = false;
+    if (speechSynthesis.speaking || speechSynthesis.pending) speechSynthesis.cancel();
+    isReading = false;
     btnStop.style.display = 'none';
     btnRead.style.display = 'block';
     setStatus('⏹️ تم الإيقاف');
   }
 
   function startSpeech() {
-    const input = txt.value;
-    
-    if (!input.trim()) {
-      setStatus('⚠️ اكتب أو الصق نصاً أولاً', 'error');
-      return;
-    }
-    
-    // تشغيل التشخيص وعرضه إذا كان مفتوحاً
-    const cleaned = runDiagnostics(input);
-    if (debug.classList.contains('show')) {
-      // التحديث تلقائي عند فتح التشخيص
-    }
-    
-    // التحقق من النتيجة
-    if (!cleaned) {
-      setStatus('❌ النص بعد التنظيف فارغ! تأكد أن النص يحتوي أحرف عربية أو إنجليزية.', 'error');
-      return;
-    }
-    
-    // التحقق من دعم الصوت
-    if (!('speechSynthesis' in window)) {
-      setStatus('⚠️ متصفحك لا يدعم القراءة الصوتية', 'error');
-      return;
-    }
-    
-    // إيقاف أي قراءة سابقة
+    const raw = txt.value;
+    if (!raw.trim()) return setStatus('⚠️ لا يوجد نص. الصق أو اكتب نصاً أولاً.', 'error');
+
+    const cleaned = cleanUniversalText(raw);
+    if (!cleaned) return setStatus('❌ النص فارغ بعد التنظيف. تأكد من وجود أحرف أو أرقام.', 'error');
+
+    if (debugBox.classList.contains('show')) runDebug(raw, cleaned);
+
     stopSpeech();
-    
-    // إنشاء ونطق النص
     try {
       utterance = new SpeechSynthesisUtterance(cleaned);
       utterance.lang = 'ar-SA';
       utterance.rate = 0.9;
+      utterance.pitch = 1.0;
       
-      utterance.onstart = () => {
-        isReading = true;
-        btnRead.style.display = 'none';
-        btnStop.style.display = 'block';
-        setStatus('🔊 جارٍ القراءة...');
-      };
-      
-      utterance.onend = () => {
-        isReading = false;        btnRead.style.display = 'block';
-        btnStop.style.display = 'none';
-        setStatus('✅ انتهت القراءة');
-      };
-      
-      utterance.onerror = (e) => {
-        isReading = false;
-        btnRead.style.display = 'block';
-        btnStop.style.display = 'none';
-        console.error('Speech error:', e);
-        setStatus('⚠️ خطأ في الصوت: ' + (e.error || 'غير معروف'), 'error');
-      };
+      utterance.onstart = () => { isReading = true; btnStop.style.display = 'block'; btnRead.style.display = 'none'; setStatus('🔊 جارٍ القراءة...', 'success'); };
+      utterance.onend   = () => { isReading = false; btnStop.style.display = 'none'; btnRead.style.display = 'block'; setStatus('✅ انتهت القراءة', 'success'); };
+      utterance.onerror = (e) => { stopSpeech(); setStatus(`⚠️ خطأ صوت: ${e.error || 'غير معروف'}`, 'error'); };
       
       speechSynthesis.speak(utterance);
-      setStatus('🎧 بدء القراءة...');
-      
-    } catch (err) {
-      console.error('Exception:', err);
-      setStatus('❌ خطأ فني: ' + err.message, 'error');
+    } catch(e) { setStatus('❌ خطأ تقني: ' + e.message, 'error'); }
+  }
+
+  // 📋 لصق ذكي: يتجاوز تنسيقات HTML/RTF ويأخذ النص الخام فقط
+  btnPaste.onclick = async () => {
+    try {
+      const clip = await navigator.clipboard.readText();
+      txt.value = clip;
+      setStatus('📥 تم اللصق الآمن', 'success');
+      if (debugBox.classList.contains('show')) runDebug(clip, cleanUniversalText(clip));
+    } catch(e) { setStatus('⚠️ الصق يدوياً (Ctrl+V). المتصفح يتطلب HTTPS للوصول للحافظة.', 'error'); }
+  };
+
+  btnRead.onclick = startSpeech;
+  btnStop.onclick = stopSpeech;  btnDebug.onclick = () => {
+    debugBox.classList.toggle('show');
+    if (debugBox.classList.contains('show') && txt.value) runDebug(txt.value, cleanUniversalText(txt.value));
+  };
+
+  // استقبال النصوص المشتركة عبر الرابط (?text= أو ?title=)
+  function loadSharedText() {
+    const params = new URLSearchParams(window.location.search);
+    const shared = params.get('text') || params.get('title') || params.get('content') || params.get('body');
+    if (shared) {
+      try { txt.value = decodeURIComponent(shared); } catch(e) { txt.value = shared; }
+      setStatus('📥 تم استلام النص المشارك', 'success');
+      localStorage.setItem('readaid_last', txt.value);
+    } else {
+      const saved = localStorage.getItem('readaid_last');
+      if (saved) txt.value = saved;
     }
   }
 
-  // الأزرار
-  btnRead.onclick = startSpeech;
-  btnStop.onclick = stopSpeech;
-  
-  btnDebug.onclick = () => {
-    debug.classList.toggle('show');
-    if (debug.classList.contains('show') && txt.value) {
-      runDiagnostics(txt.value);
-    }
-  };
-  
-  // تحديث التشخيص عند الكتابة
-  txt.addEventListener('input', () => {
-    if (debug.classList.contains('show')) {
-      runDiagnostics(txt.value);
-    }
-  });
-  
-  // تحميل الأصوات عند بدء الصفحة (مهم لـ Chrome)
+  // تهيئة المتصفح
   window.addEventListener('load', () => {
-    if ('speechSynthesis' in window) {
-      // تحميل قائمة الأصوات (قد يتطلب وقتاً في Chrome)
-      speechSynthesis.onvoiceschanged = () => {
-        console.log('🔊 الأصوات محملة:', speechSynthesis.getVoices().length);
-      };
-      // محاولة أولية لتحميل الأصوات
-      speechSynthesis.getVoices();
-    }    
-    // استعادة آخر نص
-    const saved = localStorage.getItem('readaid_text');
-    if (saved) txt.value = saved;
+    loadSharedText();
+    if ('speechSynthesis' in window) speechSynthesis.getVoices(); // تحميل مبكر للأصوات في Chrome
   });
-  
-  // حفظ النص تلقائياً
-  txt.addEventListener('change', () => {
-    localStorage.setItem('readaid_text', txt.value);
-  });
-  
-  // دعم اختصارات لوحة المفاتيح
-  document.addEventListener('keydown', (e) => {
-    if (e.ctrlKey && e.key === 'Enter') {
-      e.preventDefault();
-      isReading ? stopSpeech() : startSpeech();
-    }
+
+  txt.addEventListener('input', () => localStorage.setItem('readaid_last', txt.value));
+  document.addEventListener('keydown', e => {
+    if (e.ctrlKey && e.key === 'Enter') { e.preventDefault(); isReading ? stopSpeech() : startSpeech(); }
     if (e.key === 'Escape' && isReading) stopSpeech();
   });
 </script>
