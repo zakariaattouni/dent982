@@ -2,146 +2,190 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>ReadAid - الحل الجذري</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ReadAid - الإصدار الحاسم</title>
 <style>
-  :root { --bg:#0b1220; --card:#1b2430; --pri:#1e88e5; --ok:#2e7d32; --err:#d32f2f; --txt:#fff; }
-  body { margin:0; padding:15px; font-family:system-ui,-apple-system,sans-serif; background:var(--bg); color:var(--txt); min-height:100vh; display:flex; flex-direction:column; align-items:center; }
-  h1 { font-size:20px; margin:10px 0 20px; font-weight:900; color:var(--pri); }
+  body { background: #0f172a; color: #fff; font-family: system-ui; padding: 15px; margin: 0; }
+  h2 { text-align: center; color: #38bdf8; margin-bottom: 10px; }
   
-  textarea { 
-    width:100%; height:150px; padding:15px; font-size:18px; 
-    border:2px solid #2a3746; border-radius:15px; background:var(--card); 
-    color:#aaa; resize:none; margin-bottom:20px; transition:border-color 0.3s;
-  }
-  textarea.has-text { color:var(--txt); border-color:var(--ok); }
+  .box { background: #1e293b; padding: 12px; border-radius: 10px; margin-bottom: 12px; border: 1px solid #334155; }
+  label { display: block; font-size: 13px; color: #94a3b8; margin-bottom: 5px; }
+  textarea { width: 100%; height: 80px; background: #0b1220; color: #fff; border: 1px solid #475569; padding: 8px; border-radius: 6px; font-size: 15px; resize: none; direction: rtl; }
   
-  .big-btn {
-    width:100%; padding:20px; font-size:22px; font-weight:bold; 
-    border:none; border-radius:15px; cursor:pointer; color:#fff; 
-    box-shadow: 0 4px 15px rgba(0,0,0,0.3); transition: transform 0.1s;
-  }
-  .big-btn:active { transform: scale(0.98); }
-  .btn-wait { background:#4a5568; cursor: not-allowed; }
-  .btn-ready { background:var(--ok); animation: pulse 2s infinite; }
-  .btn-stop { background:var(--err); display:none; }
-
-  #status { margin-top:15px; font-size:14px; color:#8899aa; text-align:center; }
+  .clean-box textarea { color: #4ade80; border-color: #22c55e; }
   
-  @keyframes pulse {
-    0% { box-shadow: 0 0 0 0 rgba(46, 125, 50, 0.7); }
-    70% { box-shadow: 0 0 0 10px rgba(46, 125, 50, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(46, 125, 50, 0); }
-  }
+  button { width: 100%; padding: 16px; font-size: 18px; font-weight: bold; border: none; border-radius: 10px; cursor: pointer; margin-top: 10px; transition: 0.2s; }
+  .btn-wait { background: #334155; color: #94a3b8; cursor: not-allowed; }
+  .btn-go { background: #10b981; color: #fff; box-shadow: 0 4px 15px rgba(16,185,129,0.4); }
+  .btn-stop { background: #ef4444; color: #fff; display: none; }
+  
+  #log { background: #000; color: #aaa; padding: 10px; border-radius: 8px; font-size: 12px; font-family: monospace; height: 120px; overflow: auto; white-space: pre-wrap; direction: ltr; text-align: left; }
 </style>
 </head>
 <body>
 
-<h1>ReadAid</h1>
+<h2>ReadAid - القراءة الآمنة</h2>
 
-<textarea id="input" readonly placeholder="انتظار استلام النص..."></textarea>
+<div class="box">
+  <label>📥 النص المستلم (خام):</label>
+  <textarea id="rawInput" readonly placeholder="بانتظار المشاركة..."></textarea>
+</div>
 
-<button id="actionBtn" class="big-btn btn-wait" disabled>⏳ بانتظار النص...</button>
-<button id="stopBtn" class="big-btn btn-stop">⏹️ إيقاف</button>
+<div class="box clean-box">
+  <label>🧼 النص المنظف (جاهز للقراءة):</label>
+  <textarea id="cleanInput" readonly placeholder="سيظهر هنا بعد التنظيف التلقائي..."></textarea>
+</div>
 
-<div id="status">جاهز</div>
+<button id="actionBtn" class="btn-wait" disabled> بانتظار النص...</button>
+<button id="stopBtn" class="btn-stop">⏹️ إيقاف</button>
+
+<div class="box">
+  <label>📜 سجل الأحداث (للمراجعة):</label>
+  <div id="log">جاهز...</div>
+</div>
 
 <script>
-const input = document.getElementById('input');const btn = document.getElementById('actionBtn');
-const stopBtn = document.getElementById('stopBtn');
-const status = document.getElementById('status');
+const rawIn = document.getElementById('rawInput');
+const cleanIn = document.getElementById('cleanInput');
+const btn = document.getElementById('actionBtn');const stopBtn = document.getElementById('stopBtn');
+const logBox = document.getElementById('log');
 
 let isReading = false;
-let lines = [];
-let currentIdx = 0;
 
-// 1. وظيفة كشف النص (تعمل عند الفتح وعند العودة للتطبيق)
-function checkForText() {
-  const params = new URLSearchParams(window.location.search);
-  // نبحث عن النص في عدة أماكن محتملة
-  let raw = params.get('text') || params.get('share') || params.get('title') || '';
-  
-  if (raw && input.value === "") { // إذا وجدنا نصاً والمربع فارغ
-    try {
-      // فك التشفير وتنظيف مبدئي
-      let clean = decodeURIComponent(raw.replace(/\+/g, ' '))
-        .replace(/[^\u0600-\u06FF0-9\s\.\,\!\?\:\;\-\(\)؟،؛]/g, '')
-        .replace(/\s+/g, ' ').trim();
-      
-      if (clean.length > 2) {
-        input.value = clean;
-        input.classList.add('has-text');
-        btn.textContent = "🔊 اضغط هنا للقراءة";
-        btn.className = "big-btn btn-ready";
-        btn.disabled = false;
-        status.textContent = "✅ تم استلام النص بنجاح!";
-        return;
-      }
-    } catch(e) {}
-  }
+function log(msg) {
+  logBox.textContent = `[${new Date().toLocaleTimeString()}] ${msg}\n` + logBox.textContent;
 }
 
-// 2. تشغيل الكشف عند تحميل الصفحة
-window.addEventListener('DOMContentLoaded', checkForText);
-
-// 3. 🔑 الحل السحري: تشغيل الكشف عند عودة التطبيق للواجهة
-window.addEventListener('focus', checkForText);
-
-// 4. منطق القراءة
-btn.addEventListener('click', () => {
-  const text = input.value;
-  if (!text) return;
-
-  // تقسيم النص
-  lines = text.split(/[\n\.!؟؛]+/).map(s => s.trim()).filter(s => s.length > 2);
-  if (lines.length === 0) return;
-
-  // تبديل الأزرار  btn.style.display = 'none';
-  stopBtn.style.display = 'block';
-  status.textContent = `📖 جاري قراءة ${lines.length} سطر...`;
+// 1. استخراج النص من الرابط بأقصى قوة
+function extractText() {
+  const params = new URLSearchParams(window.location.search);
+  let raw = '';
   
-  isReading = true;
-  currentIdx = 0;
-  speakLine(0);
-});
+  // نجرب كل المفاتيح الشائعة
+  const keys = ['text', 'share', 'title', 'content', 'q', 'msg', 'data'];
+  for(let k of keys) {
+    if(params.has(k)) { raw = params.get(k); break; }
+  }
+  
+  // إذا فشل البحث المباشر، نأخذ أول قيمة طويلة في الرابط
+  if(!raw) {
+    for(let [k, v] of params.entries()) {
+      if(v.length > 10) { raw = v; break; }
+    }
+  }
+  return raw;
+}
 
-stopBtn.addEventListener('click', () => {
-  isReading = false;
-  window.speechSynthesis.cancel();
-  btn.style.display = 'block';
-  stopBtn.style.display = 'none';
-  status.textContent = "⏹️ تم الإيقاف";
-});
+// 2. الفلتر النووي (يحذف كل شيء إلا العربي والأرقام والترقيم)
+function nuclearClean(text) {
+  if(!text) return '';
+  let t = text;
+  // إزالة الروابط والوسوم
+  t = t.replace(/https?:\/\/\S+/gi, '').replace(/<[^>]*>/g, '');
+  // القائمة البيضاء الصارمة
+  t = t.replace(/[^\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF0-9\s\.\,\!\?\:\;\-\(\)؟،؛]/g, '');
+  // إزالة الرموز الخفية والصفرية
+  t = t.replace(/[\u200B-\u200F\u202A-\u202E\u2060-\u2069\uFEFF\u00AD\u061C\uFE0E\uFE0F]/g, '');
+  // توحيد المسافات
+  return t.replace(/\s+/g, ' ').trim();
+}
 
-function speakLine(idx) {
-  if (!isReading || idx >= lines.length) {
-    stopBtn.click(); // إيقاف نظيف
-    status.textContent = "✅ انتهت القراءة";
+// 3. معالجة الاستلام
+function processShare() {
+  const raw = extractText();
+  if(!raw) {
+    log('⚠️ لم يتم العثور على نص في الرابط.');
+    // السماح باللصق اليدوي كخطة بديلة
+    rawIn.removeAttribute('readonly');    rawIn.placeholder = "الصق النص هنا يدوياً ثم اضغط الزر";
+    btn.textContent = "🔊 تنظيف وقراءة";
+    btn.className = "btn-go";
+    btn.disabled = false;
     return;
   }
 
-  status.textContent = `🗣️ السطر ${idx + 1} من ${lines.length}`;
+  try {
+    // فك التشفير
+    const decoded = decodeURIComponent(raw.replace(/\+/g, ' '));
+    rawIn.value = decoded;
+    log(` استلم: ${decoded.substring(0, 50)}...`);
+    
+    // تنظيف فوري وعرضه
+    const cleaned = nuclearClean(decoded);
+    cleanIn.value = cleaned;
+    log(`🧼 نظف إلى: ${cleaned}`);
+    
+    if(cleaned.length < 3) {
+      log('❌ النص أصبح فارغاً بعد التنظيف!');
+      btn.textContent = "⚠️ النص غير صالح";
+      btn.className = "btn-wait";
+      btn.disabled = true;
+      return;
+    }
+
+    // تفعيل زر القراءة
+    btn.textContent = " قراءة النص المنظف";
+    btn.className = "btn-go";
+    btn.disabled = false;
+    log('✅ جاهز. اضغط الزر الأخضر للقراءة.');
+    
+  } catch(e) {
+    log(`❌ خطأ معالجة: ${e.message}`);
+  }
+}
+
+// 4. محرك القراءة (يعمل فقط عند الضغطة)
+function startReading() {
+  const text = cleanIn.value.trim();
+  if(!text) return;
   
-  const utter = new SpeechSynthesisUtterance(lines[idx]);
+  isReading = true;
+  btn.style.display = 'none';
+  stopBtn.style.display = 'block';
+  log('🟢 بدأت القراءة...');
+  
+  // إيقاف أي شيء عالق
+  if(window.speechSynthesis) window.speechSynthesis.cancel();
+    const utter = new SpeechSynthesisUtterance(text);
   utter.lang = 'ar-SA';
-  utter.rate = 0.9;
+  utter.rate = 0.85;
   
   utter.onend = () => {
-    if (isReading) speakLine(idx + 1);
+    log('✅ انتهت القراءة بنجاح');
+    stopReading();
   };
   
-  utter.onerror = () => {
-    if (isReading) speakLine(idx + 1); // تخطي الخطأ
+  utter.onerror = (e) => {
+    log(`❌ فشل المحرك: ${e.error}`);
+    stopReading();
   };
-
-  window.speechSynthesis.cancel();
-  window.speechSynthesis.speak(utter);
+  
+  try {
+    window.speechSynthesis.speak(utter);
+  } catch(err) {
+    log(`💥 خطأ نظام: ${err.message}`);
+    stopReading();
+  }
 }
 
-// تحميل الأصوات
-if (window.speechSynthesis) {
-  window.speechSynthesis.getVoices();
+function stopReading() {
+  isReading = false;
+  if(window.speechSynthesis) window.speechSynthesis.cancel();
+  btn.style.display = 'block';
+  stopBtn.style.display = 'none';
+  log('⏹️ تم الإيقاف');
 }
+
+// ربط الأحداث
+btn.addEventListener('click', startReading);
+stopBtn.addEventListener('click', stopReading);
+
+// تشغيل عند الفتح وعند العودة للواجهة
+window.addEventListener('DOMContentLoaded', processShare);
+window.addEventListener('focus', processShare);
+window.addEventListener('pageshow', processShare);
+
+// تنظيف مسبق عند التحميل لمنع القراءة العشوائية
+if(window.speechSynthesis) window.speechSynthesis.cancel();
 </script>
 
 </body>
