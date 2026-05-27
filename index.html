@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>ReadAid - الإعداد اليدوي</title>
+<title>ReadAid - تدفق خطي</title>
 <style>
   :root { --bg:#0b1220; --card:#1b2430; --pri:#1e88e5; --ok:#2e7d32; --err:#d32f2f; --txt:#fff; }
   * { box-sizing: border-box; }
@@ -12,132 +12,104 @@
   .container { padding:15px; flex:1; display:flex; flex-direction:column; gap:12px; margin-bottom:70px; }
   textarea { width:100%; height:110px; padding:12px; font-size:16px; border:2px solid #2a3746; border-radius:12px; background:var(--card); color:var(--txt); resize:none; outline:none; }
   textarea:focus { border-color:var(--pri); }
-  .btn { width:100%; padding:14px; font-size:17px; font-weight:800; border:none; border-radius:12px; cursor:pointer; transition:transform .1s, opacity .2s; color:#fff; }
-  .btn:active { transform:scale(.98); }
-  .btn:disabled { opacity:.5; cursor:not-allowed; }
+  .btn { width:100%; padding:14px; font-size:17px; font-weight:800; border:none; border-radius:12px; cursor:pointer; color:#fff; transition:opacity .2s; }
+  .btn:active { opacity:.85; }
   .btn-pri { background:var(--pri); }
   .btn-ok { background:var(--ok); }
   .btn-err { background:var(--err); }
   #out { margin-top:10px; }
   .line { padding:15px; margin:8px 0; background:var(--card); border-radius:12px; font-size:22px; line-height:1.5; border-right:4px solid transparent; transition:all .2s; }
   .line.active { background:var(--pri); border-right-color:#fff; transform:scale(1.02); }
-  #log { position:fixed; bottom:0; left:0; right:0; background:rgba(0,0,0,.9); padding:10px; font:12px monospace; color:#aaa; text-align:left; direction:ltr; max-height:120px; overflow:auto; z-index:100; display:none; }
-  #status { position:fixed; top:10px; left:50%; transform:translateX(-50%); background:var(--ok); padding:8px 16px; border-radius:20px; font-size:14px; font-weight:700; display:none; z-index:101; white-space:nowrap; }
+  #toast { position:fixed; top:10px; left:50%; transform:translateX(-50%); background:var(--ok); padding:8px 16px; border-radius:20px; font-size:14px; font-weight:700; display:none; z-index:101; white-space:nowrap; }
+  #log { position:fixed; bottom:0; left:0; right:0; background:rgba(0,0,0,.9); padding:10px; font:12px monospace; color:#aaa; text-align:left; direction:ltr; max-height:100px; overflow:auto; z-index:100; }
 </style>
 </head>
 <body>
 
-<header>ReadAid — وضع الإعداد اليدوي</header>
-<div id="status"></div>
+<header>ReadAid — القراءة المستقرة</header>
+<div id="toast"></div>
 
 <div class="container">
-  <textarea id="input" placeholder="النص المشترك سيظهر هنا تلقائياً..."></textarea>
+  <textarea id="input" placeholder="الصق النص أو شاركه من تطبيق آخر..."></textarea>
   
-  <button id="prepareBtn" class="btn btn-pri" disabled>🛠️ إعداد وتجهيز النص</button>
-  <button id="readBtn" class="btn btn-ok" style="display:none;">🔊 بدء القراءة</button>
-  <button id="stopBtn" class="btn btn-err" style="display:none;">⏹️ إيقاف فوري</button>
+  <!-- التدفق الخطي: تجهيز → قراءة → إيقاف -->
+  <button id="btnPrepare" class="btn btn-pri">️ تجهيز وتنظيف النص</button>
+  <button id="btnRead" class="btn btn-ok" style="display:none;">🔊 بدء القراءة</button>
+  <button id="btnStop" class="btn btn-err" style="display:none;">️ إيقاف فوري</button>
   
   <div id="out"></div>
 </div>
 
-<div id="log"></div>
+<div id="log">جاهز...</div>
 
 <script>
-// === الحالة والمتغيرات ===
+// === الحالة ===
 let isReading = false;
 let currentIdx = 0;
 let lines = [];
-let voicesReady = false;
-// === دالة التنظيف الجراحية ===
+// === عناصر DOM ===
+const elInput = document.getElementById('input');
+const elOut = document.getElementById('out');
+const btnPrepare = document.getElementById('btnPrepare');
+const btnRead = document.getElementById('btnRead');
+const btnStop = document.getElementById('btnStop');
+const elLog = document.getElementById('log');
+const elToast = document.getElementById('toast');
+
+function log(msg) { elLog.textContent = msg + '\n' + elLog.textContent; }
+function toast(msg, type='ok') {
+  elToast.textContent = msg;
+  elToast.style.background = type==='err' ? 'var(--err)' : 'var(--ok)';
+  elToast.style.display = 'block';
+  setTimeout(() => elToast.style.display = 'none', 3000);
+}
+
+// === الفلتر النووي ===
 function cleanText(raw) {
   if (!raw) return '';
-  let t = raw;
-  // 1. إزالة الروابط ووسوم HTML
-  t = t.replace(/https?:\/\/\S+/gi, '').replace(/<[^>]*>/g, '');
-  // 2. القائمة البيضاء الصارمة: عربي + أرقام + مسافات + ترقيم أساسي
+  let t = raw.replace(/https?:\/\/\S+/gi, '').replace(/<[^>]*>/g, '');
   t = t.replace(/[^\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF0-9\s\.\,\!\?\:\;\-\(\)\'\"؟،؛]/g, '');
-  // 3. إزالة أحرف التحكم والصفرية الخفية
   t = t.replace(/[\u200B-\u200F\u202A-\u202E\u2060-\u2069\uFEFF\u00AD\u061C\uFE0E\uFE0F]/g, '');
-  // 4. توحيد المسافات
   return t.replace(/\s+/g, ' ').trim();
 }
 
-// === واجهة الحالة والسجل ===
-function showStatus(msg, type='ok') {
-  const el = document.getElementById('status');
-  el.textContent = msg;
-  el.style.background = type === 'err' ? 'var(--err)' : 'var(--ok)';
-  el.style.display = 'block';
-  setTimeout(() => el.style.display = 'none', 3000);
-}
-function log(msg) {
-  const el = document.getElementById('log');
-  el.style.display = 'block';
-  el.textContent = `[${new Date().toLocaleTimeString()}] ${msg}\n` + el.textContent;
-}
-
-// === استقبال النص عند المشاركة ===
-function handleShare() {
-  const params = new URLSearchParams(location.search);
-  let raw = '';
-  // البحث في المعاملات الشائعة
-  for (let k of ['text','share','content','title','q']) {
-    const v = params.get(k);
-    if (v) { try { raw = decodeURIComponent(v.replace(/\+/g, ' ')); break; } catch(e){} }
-  }
-  
-  if (raw) {
-    // تنظيف مبدئي للعرض
-    const cleaned = cleanText(raw);
-    document.getElementById('input').value = cleaned;
-    log(`📥 تم استلام النص (${raw.length} حرف) -> تنظيف -> (${cleaned.length} حرف)`);
-    showStatus('📥 تم استقبال النص. اضغط "تجهيز"');
-    document.getElementById('prepareBtn').disabled = false;
-  } else {
-    log('⚠️ لم يتم استقبال نص عبر المشاركة.');
-    document.getElementById('prepareBtn').disabled = false; // تفعيله للإدخال اليدوي
-  }}
-
-// === زر الإعداد والتجهيز ===
-document.getElementById('prepareBtn').addEventListener('click', () => {
-  const raw = document.getElementById('input').value;
-  if (!raw.trim()) { showStatus('⚠️ المربع فارغ', 'err'); return; }
+// === 1. زر التجهيز ===
+btnPrepare.addEventListener('click', () => {
+  const raw = elInput.value;
+  if (!raw.trim()) { toast('⚠️ المربع فارغ', 'err'); return; }
   
   const text = cleanText(raw);
-  if (!text || text.length < 3) { showStatus('⚠️ النص فارغ بعد التنظيف', 'err'); return; }
+  if (text.length < 3) { toast('️ النص فارغ بعد التنظيف', 'err'); return; }
   
-  // تقسيم وعرض الأسطر
   lines = text.split(/[\n\.!؟؛]+/).map(s => s.trim()).filter(s => s.length > 2);
-  const out = document.getElementById('out');
-  out.innerHTML = '';
-  
+  elOut.innerHTML = '';
   lines.forEach((s, i) => {
     const div = document.createElement('div');
-    div.className = 'line';
-    div.id = 'l' + i;
-    div.textContent = s;
-    out.appendChild(div);
+    div.className = 'line'; div.id = 'l' + i; div.textContent = s;
+    elOut.appendChild(div);
   });
   
-  log(`️ تم تجهيز ${lines.length} سطر للقراءة.`);
-  showStatus('✅ جاهز للقراءة');
+  log(`✅ تم تجهيز ${lines.length} سطر نظيف.`);
+  toast('✅ جاهز للقراءة');
   
-  // تبديل الأزرار
-  document.getElementById('prepareBtn').style.display = 'none';
-  document.getElementById('readBtn').style.display = 'block';
+  // تبديل الأزرار خطياً
+  btnPrepare.style.display = 'none';
+  btnRead.style.display = 'block';
+  btnStop.style.display = 'none';
 });
-
-// === محرك النطق الآمن ===
-function startReading() {
-  if (!lines.length) return;
+// === 2. زر القراءة ===
+btnRead.addEventListener('click', () => {
+  if (lines.length === 0) return;
   isReading = true;
   currentIdx = 0;
-  document.getElementById('readBtn').style.display = 'none';
-  document.getElementById('stopBtn').style.display = 'block';
+  
+  btnRead.style.display = 'none';
+  btnStop.style.display = 'block';
   log('🟢 بدأت القراءة...');
-  speakLine(currentIdx);
-}
+  speakLine(0);
+});
 
+// === محرك النطق ===
 function speakLine(idx) {
   if (!isReading || idx >= lines.length) { stopReading(); return; }
   
@@ -145,56 +117,59 @@ function speakLine(idx) {
   document.querySelectorAll('.line').forEach(el => el.classList.remove('active'));
   const cur = document.getElementById('l' + idx);
   if (cur) { cur.classList.add('active'); cur.scrollIntoView({behavior:'smooth', block:'center'}); }
-    const text = lines[idx];
-  log(`️ يقرأ السطر ${idx+1}/${lines.length}`);
   
-  // إيقاف أي عملية سابقة
+  const text = lines[idx];
+  log(`🗣️ السطر ${idx+1}/${lines.length}`);
+  
   window.speechSynthesis.cancel();
-  
   const utter = new SpeechSynthesisUtterance(text);
   utter.lang = 'ar-SA';
   utter.rate = 0.85;
-  utter.pitch = 1;
   
-  // اختيار صوت عربي محلي إن وجد
   const voices = window.speechSynthesis.getVoices();
-  const ar = voices.find(v => v.lang.startsWith('ar') && v.localService) || voices.find(v => v.lang.startsWith('ar'));
+  const ar = voices.find(v => v.lang.startsWith('ar'));
   if (ar) utter.voice = ar;
   
   utter.onend = () => { if (isReading) { currentIdx++; setTimeout(() => speakLine(currentIdx), 150); } };
   utter.onerror = (e) => {
-    log(`❌ خطأ في السطر ${idx+1}: ${e.error}`);
-    // تخطي السطر المعطل والمتابعة
+    log(`❌ تخطي السطر ${idx+1} (${e.error})`);
     if (isReading) { currentIdx++; setTimeout(() => speakLine(currentIdx), 200); }
   };
   
   try { window.speechSynthesis.speak(utter); } 
-  catch(err) { log(`💥 خطأ فادح: ${err.message}`); stopReading(); }
+  catch(err) { log(`💥 خطأ: ${err.message}`); stopReading(); }
 }
 
+// === 3. زر الإيقاف ===
 function stopReading() {
   isReading = false;
   window.speechSynthesis.cancel();
   document.querySelectorAll('.line').forEach(el => el.classList.remove('active'));
-  document.getElementById('readBtn').style.display = 'block';
-  document.getElementById('stopBtn').style.display = 'none';
-  log('⏹️ تم الإيقاف');
+    btnRead.style.display = 'block';
+  btnStop.style.display = 'none';
+  log('️ تم الإيقاف');
 }
+btnStop.addEventListener('click', stopReading);
 
-// === التهيئة ===
-document.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('readBtn').addEventListener('click', startReading);
-  document.getElementById('stopBtn').addEventListener('click', stopReading);
+// === استقبال المشاركة ===
+window.addEventListener('DOMContentLoaded', () => {
+  const params = new URLSearchParams(location.search);
+  let raw = params.get('text') || params.get('share') || params.get('title') || '';
   
-  // مزامنة تحميل الأصوات
-  if (window.speechSynthesis) {
-    const onVoices = () => { voicesReady = true; log('🔊 أصوات المحرك جاهزة'); };
-    window.speechSynthesis.addEventListener('voiceschanged', onVoices);
-    window.speechSynthesis.getVoices();
+  if (raw) {
+    try { raw = decodeURIComponent(raw.replace(/\+/g, ' ')); } catch(e){}
+    elInput.value = cleanText(raw); // تنظيف فوري آمن
+    toast(' تم استلام النص. اضغط "تجهيز"');
+    log('📥 نص مستلم ومنظف.');
   }
   
-  handleShare();
+  // تحميل الأصوات مسبقاً
+  if (window.speechSynthesis) {
+    window.speechSynthesis.getVoices();
+    window.speechSynthesis.onvoiceschanged = () => log('🔊 الأصوات جاهزة');
+  }
 });
+
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('./sw.js').catch(()=>{});
 }
