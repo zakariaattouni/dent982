@@ -3,171 +3,145 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>ReadAid - البسيط والمستقر</title>
+<title>ReadAid - الحل الجذري</title>
 <style>
   :root { --bg:#0b1220; --card:#1b2430; --pri:#1e88e5; --ok:#2e7d32; --err:#d32f2f; --txt:#fff; }
-  * { box-sizing: border-box; }
-  body { margin:0; padding:15px; font-family:system-ui,-apple-system,sans-serif; background:var(--bg); color:var(--txt); min-height:100vh; display:flex; flex-direction:column; }
-  h1 { text-align:center; font-size:20px; margin:10px 0 20px; font-weight:900; }
-  textarea { width:100%; height:120px; padding:12px; font-size:16px; border:2px solid #2a3746; border-radius:12px; background:var(--card); color:var(--txt); resize:none; margin-bottom:15px; }
-  textarea:focus { border-color:var(--pri); }
-  .btn { width:100%; padding:16px; font-size:18px; font-weight:bold; border:none; border-radius:12px; cursor:pointer; color:#fff; margin-bottom:10px; transition:opacity .2s; }
-  .btn:active { opacity:.85; }
-  .btn-start { background:var(--pri); }
+  body { margin:0; padding:15px; font-family:system-ui,-apple-system,sans-serif; background:var(--bg); color:var(--txt); min-height:100vh; display:flex; flex-direction:column; align-items:center; }
+  h1 { font-size:20px; margin:10px 0 20px; font-weight:900; color:var(--pri); }
+  
+  textarea { 
+    width:100%; height:150px; padding:15px; font-size:18px; 
+    border:2px solid #2a3746; border-radius:15px; background:var(--card); 
+    color:#aaa; resize:none; margin-bottom:20px; transition:border-color 0.3s;
+  }
+  textarea.has-text { color:var(--txt); border-color:var(--ok); }
+  
+  .big-btn {
+    width:100%; padding:20px; font-size:22px; font-weight:bold; 
+    border:none; border-radius:15px; cursor:pointer; color:#fff; 
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3); transition: transform 0.1s;
+  }
+  .big-btn:active { transform: scale(0.98); }
+  .btn-wait { background:#4a5568; cursor: not-allowed; }
+  .btn-ready { background:var(--ok); animation: pulse 2s infinite; }
   .btn-stop { background:var(--err); display:none; }
-  #lines { flex:1; overflow-y:auto; margin-bottom:10px; }
-  .line { padding:14px; margin:8px 0; background:var(--card); border-radius:10px; font-size:22px; line-height:1.5; border-right:4px solid transparent; transition:all .2s; }
-  .line.active { background:var(--pri); border-right-color:#fff; transform:scale(1.02); }
-  #status { text-align:center; font-size:14px; color:#aaa; min-height:20px; margin-top:5px; }
+
+  #status { margin-top:15px; font-size:14px; color:#8899aa; text-align:center; }
+  
+  @keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(46, 125, 50, 0.7); }
+    70% { box-shadow: 0 0 0 10px rgba(46, 125, 50, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(46, 125, 50, 0); }
+  }
 </style>
 </head>
 <body>
 
-<h1>ReadAid — قارئ بسيط ومستقر</h1>
+<h1>ReadAid</h1>
 
-<textarea id="input" placeholder="النص سيظهر هنا تلقائياً عند المشاركة..."></textarea>
+<textarea id="input" readonly placeholder="انتظار استلام النص..."></textarea>
 
-<!-- زر واحد دائماً ظاهر -->
-<button id="startBtn" class="btn btn-start">🔊 تجهيز وقراءة النص</button>
-<button id="stopBtn" class="btn btn-stop">⏹️ إيقاف فوري</button>
+<button id="actionBtn" class="big-btn btn-wait" disabled>⏳ بانتظار النص...</button>
+<button id="stopBtn" class="big-btn btn-stop">⏹️ إيقاف</button>
 
-<div id="lines"></div>
 <div id="status">جاهز</div>
 
 <script>
-const input = document.getElementById('input');
-const startBtn = document.getElementById('startBtn');
+const input = document.getElementById('input');const btn = document.getElementById('actionBtn');
 const stopBtn = document.getElementById('stopBtn');
-const linesDiv = document.getElementById('lines');
 const status = document.getElementById('status');
 
 let isReading = false;
+let lines = [];
 let currentIdx = 0;
-let sentences = [];
 
-// 1. الفلتر النووي: القائمة البيضاء فقط
-function cleanText(text) {
-  if (!text) return '';  // يحذف كل شيء ما عدا: العربي، الأرقام، المسافات، والترقيم الأساسي
-  let cleaned = text.replace(/[^\u0600-\u06FF0-9\s\.\,\!\?\:\;\-\(\)؟،؛]/g, '');
-  return cleaned.replace(/\s+/g, ' ').trim();
-}
-
-// 2. استقبال النص المشترك بأمان
-function loadSharedText() {
-  try {
-    const params = new URLSearchParams(window.location.search);
-    let raw = params.get('text') || params.get('share') || params.get('title') || '';
-    if (raw) {
-      // فك التشفير مع استبدال + بمسافة
-      raw = decodeURIComponent(raw.replace(/\+/g, ' '));
-      // تنظيف فوري للعرض في المربع
-      input.value = cleanText(raw);
-      status.textContent = '✅ تم استلام النص وتنظيفه. اضغط زر القراءة.';
-    }
-  } catch (e) {
-    console.error('خطأ في استقبال النص:', e);
+// 1. وظيفة كشف النص (تعمل عند الفتح وعند العودة للتطبيق)
+function checkForText() {
+  const params = new URLSearchParams(window.location.search);
+  // نبحث عن النص في عدة أماكن محتملة
+  let raw = params.get('text') || params.get('share') || params.get('title') || '';
+  
+  if (raw && input.value === "") { // إذا وجدنا نصاً والمربع فارغ
+    try {
+      // فك التشفير وتنظيف مبدئي
+      let clean = decodeURIComponent(raw.replace(/\+/g, ' '))
+        .replace(/[^\u0600-\u06FF0-9\s\.\,\!\?\:\;\-\(\)؟،؛]/g, '')
+        .replace(/\s+/g, ' ').trim();
+      
+      if (clean.length > 2) {
+        input.value = clean;
+        input.classList.add('has-text');
+        btn.textContent = "🔊 اضغط هنا للقراءة";
+        btn.className = "big-btn btn-ready";
+        btn.disabled = false;
+        status.textContent = "✅ تم استلام النص بنجاح!";
+        return;
+      }
+    } catch(e) {}
   }
 }
 
-// 3. تجهيز الأسطر للعرض والقراءة
-function prepareLines() {
-  const text = cleanText(input.value);
-  if (!text || text.length < 3) {
-    status.textContent = '⚠️ لا يوجد نص صالح للقراءة';
-    return false;
-  }
-  
-  sentences = text.split(/[\n\.!؟؛]+/).map(s => s.trim()).filter(s => s.length > 2);
-  linesDiv.innerHTML = '';
-  
-  sentences.forEach((s, i) => {
-    const div = document.createElement('div');
-    div.className = 'line';
-    div.id = 'line-' + i;
-    div.textContent = s;
-    linesDiv.appendChild(div);
-  });
-  
-  status.textContent = `📖 تم تجهيز ${sentences.length} أسطر. جاري القراءة...`;
-  return true;
-}
+// 2. تشغيل الكشف عند تحميل الصفحة
+window.addEventListener('DOMContentLoaded', checkForText);
 
-// 4. محرك النطق الآمن
-function speakNext() {
-  if (!isReading || currentIdx >= sentences.length) {
-    stopReading();
-    return;  }
+// 3. 🔑 الحل السحري: تشغيل الكشف عند عودة التطبيق للواجهة
+window.addEventListener('focus', checkForText);
 
-  document.querySelectorAll('.line').forEach(el => el.classList.remove('active'));
-  const currentEl = document.getElementById('line-' + currentIdx);
-  if (currentEl) {
-    currentEl.classList.add('active');
-    currentEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  }
+// 4. منطق القراءة
+btn.addEventListener('click', () => {
+  const text = input.value;
+  if (!text) return;
 
-  const textToRead = sentences[currentIdx];
-  window.speechSynthesis.cancel(); // إيقاف عالق
+  // تقسيم النص
+  lines = text.split(/[\n\.!؟؛]+/).map(s => s.trim()).filter(s => s.length > 2);
+  if (lines.length === 0) return;
 
-  const utter = new SpeechSynthesisUtterance(textToRead);
-  utter.lang = 'ar-SA';
-  utter.rate = 0.85;
-
-  const voices = window.speechSynthesis.getVoices();
-  const arVoice = voices.find(v => v.lang.startsWith('ar'));
-  if (arVoice) utter.voice = arVoice;
-
-  utter.onend = () => {
-    if (isReading) {
-      currentIdx++;
-      setTimeout(speakNext, 100);
-    }
-  };
-
-  utter.onerror = (e) => {
-    // تخطي السطر المعطل والمتابعة فوراً
-    if (isReading) {
-      currentIdx++;
-      setTimeout(speakNext, 150);
-    }
-  };
-
-  try { window.speechSynthesis.speak(utter); } 
-  catch(err) { stopReading(); }
-}
-
-// 5. التحكم بالقراءة
-function startReading() {
-  if (!prepareLines()) return;
+  // تبديل الأزرار  btn.style.display = 'none';
+  stopBtn.style.display = 'block';
+  status.textContent = `📖 جاري قراءة ${lines.length} سطر...`;
   
   isReading = true;
   currentIdx = 0;
-  startBtn.style.display = 'none';
-  stopBtn.style.display = 'block';
-  
-  // تأخير قصير لضمان جاهزية المتصفح والأصوات بعد الضغطة
-  setTimeout(speakNext, 300);}
+  speakLine(0);
+});
 
-function stopReading() {
+stopBtn.addEventListener('click', () => {
   isReading = false;
   window.speechSynthesis.cancel();
-  document.querySelectorAll('.line').forEach(el => el.classList.remove('active'));
-  startBtn.style.display = 'block';
+  btn.style.display = 'block';
   stopBtn.style.display = 'none';
-  status.textContent = '⏹️ تم الإيقاف';
+  status.textContent = "⏹️ تم الإيقاف";
+});
+
+function speakLine(idx) {
+  if (!isReading || idx >= lines.length) {
+    stopBtn.click(); // إيقاف نظيف
+    status.textContent = "✅ انتهت القراءة";
+    return;
+  }
+
+  status.textContent = `🗣️ السطر ${idx + 1} من ${lines.length}`;
+  
+  const utter = new SpeechSynthesisUtterance(lines[idx]);
+  utter.lang = 'ar-SA';
+  utter.rate = 0.9;
+  
+  utter.onend = () => {
+    if (isReading) speakLine(idx + 1);
+  };
+  
+  utter.onerror = () => {
+    if (isReading) speakLine(idx + 1); // تخطي الخطأ
+  };
+
+  window.speechSynthesis.cancel();
+  window.speechSynthesis.speak(utter);
 }
 
-// ربط الأحداث
-startBtn.addEventListener('click', startReading);
-stopBtn.addEventListener('click', stopReading);
-
-// التهيئة الأولية
-window.addEventListener('DOMContentLoaded', () => {
-  loadSharedText();
-  if (window.speechSynthesis) {
-    window.speechSynthesis.getVoices();
-    window.speechSynthesis.onvoiceschanged = () => console.log('✅ الأصوات محملة');
-  }
-});
+// تحميل الأصوات
+if (window.speechSynthesis) {
+  window.speechSynthesis.getVoices();
+}
 </script>
 
 </body>
