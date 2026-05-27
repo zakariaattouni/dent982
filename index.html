@@ -3,7 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>ReadAid - الإصدار الحاسم والمعتمد</title>
+<title>ReadAid - التحكم الصارم</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1e88e5">
 <style>
   :root {
     --bg-main: #0f172a;
@@ -31,7 +33,6 @@
     border-radius: 12px; 
     margin-bottom: 12px; 
     border: 1px solid var(--border); 
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
   }
   
   label { display: block; font-size: 14px; color: var(--text-muted); margin-bottom: 6px; font-weight: bold; }
@@ -53,7 +54,7 @@
   .clean-box textarea { 
     color: #4ade80; 
     border-color: #22c55e; 
-    font-size: 20px; /* خط أكبر ومريح لكبار السن */
+    font-size: 20px; 
     font-weight: bold;
     height: 120px;
   }
@@ -70,7 +71,6 @@
     transition: all 0.2s ease; 
   }
   
-  /* الحالات المتغيرة للزر الرئيسي بناءً على اقتراحك */
   .btn-wait { background: #334155; color: var(--text-muted); cursor: not-allowed; }
   .btn-prepare { background: var(--primary-blue); color: #fff; box-shadow: 0 4px 12px rgba(59,130,246,0.3); }
   .btn-go { background: var(--success-green); color: #fff; box-shadow: 0 4px 15px rgba(16,185,129,0.4); }
@@ -105,12 +105,12 @@
 
 <div class="box clean-box" style="margin-top: 15px;">
   <label>🧼 2. النص المصفى والمجهز (جاهز تماماً):</label>
-  <textarea id="cleanInput" readonly placeholder="سيظهر النص هنا نقياً ومقسماً بعد الضغط على زر التجهيز..."></textarea>
+  <textarea id="cleanInput" readonly placeholder="سيظهر النص هنا نقياً بعد الضغط على زر التجهيز..."></textarea>
 </div>
 
 <div class="box">
   <label>📜 سجل فحص الأكواد والمحرك:</label>
-  <div id="log">النظام جاهز ومستعد...</div>
+  <div id="log">النظام مستقر وجاهز...</div>
 </div>
 
 <script>
@@ -120,28 +120,25 @@ const btn = document.getElementById('actionBtn');
 const stopBtn = document.getElementById('stopBtn');
 const logBox = document.getElementById('log');
 
-// حالات التطبيق: 0 = بانتظار نص، 1 = جاهز للتجهيز، 2 = مجهز وجاهز للقراءة
+// 0 = انتظار، 1 = جاهز للتنظيف، 2 = مجهز وجاهز للقراءة
 let appState = 0; 
+let hasProcessedShare = false; // حاجز أمان لمنع تكرار الاستقبال التلقائي
 
 function log(msg) {
   logBox.textContent = `[${new Date().toLocaleTimeString()}] ${msg}\n` + logBox.textContent;
 }
 
-// تنظيف الرموز بشكل قطعي وصارم جداً
+// الفلتر النووي الصارم لحذف الإيموجي والرموز كلياً
 function nuclearClean(text) {
   if(!text) return '';
   let t = text;
-  // حذف الروابط ووسوم الـ HTML
   t = t.replace(/https?:\/\/\S+/gi, '').replace(/<[^>]*>/g, '');
-  // مصفاة الحروف العربية واللاتينية والأرقام والمسافات وعلامات الوقف الإنسانية الأساسية فقط
+  // الإبقاء فقط على الحروف العربية والإنجليزية والأرقام وعلامات الترقيم الأساسية جداً
   t = t.replace(/[^\u0600-\u06FF\u0610-\u061A\u064B-\u0652A-Za-z0-9\s\.\،\!\؟]/g, ' ');
-  // سحق الرموز الصفرية والمخفية تماماً
   t = t.replace(/[\u200B-\u200F\u202A-\u202E\u2060-\u2069\uFEFF\u00AD\u061C\uFE0E\uFE0F]/g, '');
-  // إلغاء الفراغات المتكررة الناتجة عن حذف الرموز
   return t.replace(/\s+/g, ' ').trim();
 }
 
-// استخراج النص المستلم من المشاركة بأمان
 function extractText() {
   const params = new URLSearchParams(window.location.search);
   let raw = '';
@@ -157,119 +154,121 @@ function extractText() {
   return raw;
 }
 
-// استقبال المشاركة الصامت
+// استقبال النص لمرة واحدة فقط وبشكل صامت تماماً
 function checkIncomingShare() {
+  if (hasProcessedShare) return; // إذا تم الفحص مسبقاً، اخرج فوراً لمنع التداخل
+  hasProcessedShare = true;
+
   const raw = extractText();
   if(raw) {
     try {
       const decoded = decodeURIComponent(raw.replace(/\+/g, ' '));
       rawIn.value = decoded;
-      log(`📥 تم استقبال نص بنجاح (${decoded.length} حرف). خطوة (1) مكتملة.`);
-      setButtonState(1); // تحويل الزر لـ "تجهيز النص"
+      log(`📥 تم استقبال النص الخام بنجاح. بانتظار أمر التجهيز من طرفك.`);
+      setButtonState(1); 
     } catch(e) {
-      log(`❌ خطأ في فك تشفير الرابط: ${e.message}`);
+      log(`❌ خطأ فك التشفير: ${e.message}`);
+      setButtonState(1);
     }
   } else {
-    log(`ℹ️ لم يتم مشاركة نص خارجي. يمكنك الكتابة أو اللصق اليدوي.`);
-    setButtonState(1); // تفعيل الزر ليعمل باللصق اليدوي أيضاً
+    log(`ℹ️ لم يتم العثور على نص مشارك خارجي. يمكنك اللصق اليدوي.`);
+    setButtonState(1); 
   }
 }
 
-// التحكم بشكل ووظيفة الزر حسب مرحلة العمل
 function setButtonState(state) {
   appState = state;
   if(state === 1) {
     btn.textContent = "🛠️ اضغط هنا لتجهيز وتصفية النص";
     btn.className = "btn-prepare";
     btn.disabled = false;
+    btn.style.display = 'block';
+    stopBtn.style.display = 'none';
   } else if(state === 2) {
     btn.textContent = "🔊 ابدأ القراءة الصوتية الآن";
     btn.className = "btn-go";
     btn.disabled = false;
+    btn.style.display = 'block';
+    stopBtn.style.display = 'none';
   }
 }
 
-// الوظيفة المشتركة للزر حسب حالته الحالية
+// معالجة الضغط اليدوي الصارم
 function handleAction() {
   if (appState === 1) {
-    // خطوة التجهيز والتنظيف قبل القراءة
-    if(window.speechSynthesis) window.speechSynthesis.cancel(); // تصفير كامل للمحرك وهو صامت
+    // خطوة (1): تنظيف المحرك وهو صامت تماماً وتجهيز النص بصرياً
+    if(window.speechSynthesis) window.speechSynthesis.cancel(); 
     
     const rawText = rawIn.value.trim();
     if(!rawText) {
-      log("⚠️ الرجاء كتابة أو لصق نص أولاً!");
+      log("⚠️ لا يوجد نص في الخانة الخام لتجهيزه!");
       return;
     }
     
-    log("🧼 جاري تشغيل الفلتر النووي لعزل الرموز والإيموجي...");
+    log("🧼 جاري تنظيف النص من الإيموجي والرموز...");
     const cleanedText = nuclearClean(rawText);
     cleanIn.value = cleanedText;
     
     if(cleanedText.length < 2) {
-      log("❌ النص فارغ تماماً بعد التصفية! قد يحتوي على رموز تعبيرية فقط.");
+      log("❌ النص فارغ بعد التصفية الصارمة!");
       return;
     }
     
-    log("✅ تم التنظيف والتجهيز بنجاح! الرموز عُزلت تماماً.");
-    setButtonState(2); // تحويل الزر إلى "ابدأ القراءة"
+    log("✅ اكتمل التجهيز وعُزلت الرموز! يمكنك الضغط مجدداً لبدء القراءة بنقاء.");
+    setButtonState(2); // التجهيز تم بنجاح، ننتظر ضغطة القراءة
     
   } else if (appState === 2) {
-    // خطوة بدء القراءة الفعلية للنص النظيف والمستقر
+    // خطوة (2): القراءة الفعلية
     startReading();
   }
 }
 
-// تشغيل محرك النطق للنص النقي بنسبة 100%
 function startReading() {
   const text = cleanIn.value.trim();
   if(!text) return;
   
   btn.style.display = 'none';
   stopBtn.style.display = 'block';
-  log('🟢 بدأت القراءة الصوتية للنص المصفى...');
+  log('🟢 بدأت القراءة الصوتية الآن للنص النقي...');
   
   if(window.speechSynthesis) window.speechSynthesis.cancel();
   
   const utter = new SpeechSynthesisUtterance(text);
   utter.lang = 'ar-SA';
-  utter.rate = 0.83; // سرعة هادئة ومريحة للمسن
+  utter.rate = 0.83; 
   
   utter.onend = () => {
-    log('✅ انتهت قراءة النص بالكامل بنجاح مذهل.');
+    log('✅ انتهت القراءة بنجاح تام وبدون رموز.');
     stopReading();
   };
   
   utter.onerror = (e) => {
-    log(`⚠️ تنبيه من المحرك: ${e.error}`);
+    log(`⚠️ تنبيه المحرك: ${e.error}`);
     stopReading();
   };
   
   try {
     window.speechSynthesis.speak(utter);
   } catch(err) {
-    log(`💥 خطأ في النظام: ${err.message}`);
+    log(`💥 خطأ نظام: ${err.message}`);
     stopReading();
   }
 }
 
 function stopReading() {
   if(window.speechSynthesis) window.speechSynthesis.cancel();
-  btn.style.display = 'block';
-  stopBtn.style.display = 'none';
-  setButtonState(1); // إعادة التطبيق لوضع الاستعداد التجهيزي
-  log('⏹️ تم إيقاف وتصفير المحرك بنجاح.');
+  setButtonState(1); // إعادة التعيين لوضع التجهيز لحماية المحرك من الرموز القادمة
+  log('⏹️ تم إيقاف وتصفير المحرك.');
 }
 
-// مستمعي الأحداث والروابط للزر
 btn.addEventListener('click', handleAction);
 stopBtn.addEventListener('click', stopReading);
 
-// مراقبة كتابة النص يدوياً لتحديث حالة الزر فوراً
 rawIn.addEventListener('input', () => {
   if(appState !== 1) setButtonState(1);
 });
 
-// التشغيل المستقر عند فتح التطبيق
+// التشغيل الأحادي المستقر عند التحميل فقط
 window.addEventListener('DOMContentLoaded', () => {
   if(window.speechSynthesis) window.speechSynthesis.cancel();
   checkIncomingShare();
